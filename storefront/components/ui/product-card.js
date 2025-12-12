@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link"; // <-- NEW
 import { useCart } from "@/context/cart-context";
 
 export function ProductCard({ product }) {
@@ -15,13 +16,16 @@ export function ProductCard({ product }) {
 
   return (
     <div className="group relative block overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md">
-      <div className="aspect-square w-full overflow-hidden bg-gray-100">
-        <img
-          src={product.thumbnail || "https://dummyimage.com/400x400/eee/aaa"}
-          alt={product.title}
-          className="h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
-        />
-      </div>
+      {/* 2. Link to the Product Detail Page */}
+      <Link href={`/product/${product.handle}`} className="block">
+        <div className="aspect-square w-full overflow-hidden bg-gray-100">
+          <img
+            src={product.thumbnail || "https://dummyimage.com/400x400/eee/aaa"}
+            alt={product.title}
+            className="h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+          />
+        </div>
+      </Link>
 
       <div className="p-4">
         <h3 className="text-lg font-medium text-gray-900">{product.title}</h3>
@@ -32,6 +36,7 @@ export function ProductCard({ product }) {
           <span className="text-lg font-bold text-gray-900">
             {priceDisplay}
           </span>
+          {/* Keep the Add to Cart button */}
           <button
             onClick={() => addToCart(variantId)}
             className="rounded-full bg-black px-4 py-2 text-xs font-bold text-white transition hover:bg-gray-800 active:scale-95"

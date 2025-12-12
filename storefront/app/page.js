@@ -1,5 +1,5 @@
 import { medusa } from "@/lib/medusa";
-import { ProductCard } from "@/components/ui/productCard";
+import { ProductCard } from "@/components/ui/product-card";
 
 export default async function Home() {
   // 1. Fetch products from Medusa Backend
