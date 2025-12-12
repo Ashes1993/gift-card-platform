@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/ui/product-card";
+import { ProductActions } from "@/components/ui/product-actions";
 
 // Utility function to fetch product data using Native Fetch (Medusa v2 compatible)
 async function getProduct(handle) {
@@ -99,13 +100,8 @@ export default async function ProductPage({ params }) {
           </div>
 
           {/* Add to Cart Section */}
-          <div className="mt-10 border-t pt-10">
-            {/* We reuse the card logic for the button temporarily */}
-            <ProductCard product={product} />
-            <p className="mt-2 text-center text-sm text-gray-500">
-              (This card is temporary - we will build a real "Add to Cart"
-              button next)
-            </p>
+          <div className="mt-10 border-t border-gray-200 pt-10">
+            <ProductActions product={product} />
           </div>
         </div>
       </div>

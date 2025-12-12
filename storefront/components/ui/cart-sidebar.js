@@ -4,7 +4,7 @@ import { useCart } from "@/context/cart-context";
 // import { X } from "lucide-react" // Optional icon
 
 export function CartSidebar() {
-  const { cart, isOpen, setIsOpen } = useCart();
+  const { cart, isOpen, setIsOpen, removeItem } = useCart();
 
   if (!isOpen) return null;
 
@@ -78,6 +78,16 @@ export function CartSidebar() {
                   </div>
                   <div className="flex flex-1 items-end justify-between text-sm">
                     <p className="text-gray-500">Qty {item.quantity}</p>
+
+                    <div className="flex">
+                      <button
+                        type="button"
+                        onClick={() => removeItem(item.id)}
+                        className="font-medium text-red-600 hover:text-red-500"
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
                 </div>
               </li>
