@@ -147,14 +147,27 @@ export function AccountProvider({ children }) {
   }
 
   // 4. Logout Function
+  // 4. Logout Function (Fixed & Cleans Cart)
   async function logout() {
     try {
-      // Just clear the token and state
+      // 1. Remove Auth Token
       localStorage.removeItem("medusa_auth_token");
+
+      // 2. Remove Cart ID (Fixes "Ghost Cart" issue)
+      // This ensures the next user starts fresh.
+      localStorage.removeItem("cart_id");
+
+      // 3. Reset State
       setCustomer(null);
-      router.push("/account/login");
+
+      // 4. Hard Redirect
+      // We use window.location instead of router.push to force a full page reload.
+      // This clears all React Contexts (Cart, Account) from memory immediately.
+      window.location.href = "/account/login";
     } catch (e) {
       console.error("Logout failed", e);
+      // Even if something fails, force the redirect
+      window.location.href = "/account/login";
     }
   }
 

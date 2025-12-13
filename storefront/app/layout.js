@@ -4,6 +4,7 @@ import { CartProvider } from "@/context/cart-context";
 import { AccountProvider } from "@/context/account-context"; // <--- NEW
 import { CartSidebar } from "@/components/ui/cart-sidebar";
 import { Navbar } from "@/components/layout/nav-bar";
+import { Footer } from "@/components/layout/footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,7 +20,8 @@ export default function RootLayout({ children }) {
         <AccountProvider>
           <CartProvider>
             <Navbar />
-            {children}
+            <main className="flex-grow">{children}</main>
+            <Footer />
             <CartSidebar />
           </CartProvider>
         </AccountProvider>
