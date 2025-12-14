@@ -13,4 +13,6 @@ export default defineConfig({
       cookieSecret: process.env.COOKIE_SECRET || "supersecret",
     },
   },
+  // FIX: Load it as a legacy plugin, NOT inside 'modules'
+  plugins: ["medusa-payment-manual"],
 });
