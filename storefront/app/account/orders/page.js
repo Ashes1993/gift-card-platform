@@ -1,198 +1,230 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { redirect } from "next/navigation";
-import Link from "next/link";
-import { motion } from "framer-motion";
-import { Package, Calendar, ChevronRight, AlertCircle } from "lucide-react";
-import AccountLayout from "@/components/account/account-layout";
+import { listOrders } from "./actions";
 import { formatPrice } from "@/lib/utils";
-
-const BASE_URL =
-  process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://127.0.0.1:9000";
-const API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
+import Link from "next/link";
+import AccountLayout from "@/components/account/account-layout"; // Wraps the page in the dashboard menu
+import { motion } from "framer-motion";
+import {
+  Loader2,
+  Package,
+  Calendar,
+  CreditCard,
+  ChevronRight,
+  ShoppingBag,
+  Clock,
+} from "lucide-react";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchOrders() {
+    const loadData = async () => {
       const token = localStorage.getItem("medusa_auth_token");
-
+      // Redirect handled by layout or middleware usually, but safe check here
       if (!token) {
-        redirect("/account/login");
+        setLoading(false);
         return;
       }
 
-      try {
-        // FIX: Remove specific 'fields' that cause crashes (like 'total').
-        // We just ask for the order and expand the items.
-        // We pass the API Key in the URL to avoid header issues here too.
-        const res = await fetch(
-          `${BASE_URL}/store/orders?limit=20&offset=0&fields=*items,*items.variant`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "x-publishable-api-key": API_KEY,
-            },
-          }
-        );
-
-        if (!res.ok) {
-          console.error("Order fetch error status:", res.status);
-          throw new Error("Failed to fetch orders");
-        }
-
-        const data = await res.json();
-
-        if (data.orders) {
-          const sorted = data.orders.sort(
-            (a, b) => new Date(b.created_at) - new Date(a.created_at)
-          );
-          setOrders(sorted);
-        }
-      } catch (e) {
-        console.error("Failed to load orders", e);
-      } finally {
-        setLoading(false);
+      const result = await listOrders(token);
+      if (result.success) {
+        setOrders(result.orders);
       }
-    }
-
-    fetchOrders();
+      setLoading(false);
+    };
+    loadData();
   }, []);
 
+  // --- LOADING STATE ---
   if (loading) {
     return (
       <AccountLayout activeTab="orders">
-        <div className="flex h-64 items-center justify-center">
-          <p className="text-gray-500 animate-pulse">Loading your orders...</p>
+        <div className="flex h-[400px] w-full items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-300" />
         </div>
       </AccountLayout>
     );
   }
 
+  // --- EMPTY STATE ---
+  if (orders.length === 0) {
+    return (
+      <AccountLayout activeTab="orders">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-gray-50/50 py-20 text-center"
+        >
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-gray-100">
+            <ShoppingBag className="h-8 w-8 text-gray-300" />
+          </div>
+          <h3 className="mt-6 text-base font-semibold text-gray-900">
+            No orders yet
+          </h3>
+          <p className="mt-1 max-w-xs text-sm text-gray-500">
+            Looks like you haven't made your first purchase yet.
+          </p>
+          <Link
+            href="/store"
+            className="mt-8 rounded-full bg-black px-8 py-3 text-sm font-bold text-white transition-all hover:bg-gray-800 hover:shadow-lg"
+          >
+            Start Shopping
+          </Link>
+        </motion.div>
+      </AccountLayout>
+    );
+  }
+
+  // --- MAIN LIST STATE ---
   return (
     <AccountLayout activeTab="orders">
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold text-gray-900">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-gray-100 pb-5">
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
             Order History
-          </h2>
-          <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800">
-            {orders.length} Orders
+          </h1>
+          <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
+            {orders.length} {orders.length === 1 ? "Order" : "Orders"}
           </span>
         </div>
 
-        {orders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 py-16 text-center">
-            <Package className="h-12 w-12 text-gray-300 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900">No orders yet</h3>
-            <p className="mt-1 text-sm text-gray-500 mb-6">
-              You haven't purchased any gift cards yet.
-            </p>
-            <Link
-              href="/store"
-              className="rounded-full bg-black px-6 py-2 text-sm font-semibold text-white hover:bg-gray-800 transition"
+        {/* Orders List with Staggered Animation */}
+        <div className="space-y-6">
+          {orders.map((order, index) => (
+            <motion.div
+              key={order.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1, duration: 0.4 }}
+              className="group relative overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all hover:border-gray-200 hover:shadow-md"
             >
-              Browse Store
-            </Link>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {orders.map((order, index) => (
-              <motion.div
-                key={order.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition hover:border-blue-300 hover:shadow-md"
-              >
-                <div className="border-b border-gray-100 bg-gray-50/50 p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Calendar className="h-4 w-4" />
-                        {new Date(order.created_at).toLocaleDateString(
-                          undefined,
-                          {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          }
-                        )}
-                      </div>
-                      <span className="text-xs text-gray-400">
-                        #{order.display_id}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          order.status === "pending"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : order.status === "completed"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {order.status}
-                      </span>
-                      <span className="font-bold text-gray-900">
-                        {formatPrice(order.total, order.currency_code)}
-                      </span>
-                    </div>
+              {/* Order Top Bar */}
+              <div className="flex flex-wrap items-center justify-between gap-4 bg-gray-50/50 px-6 py-4">
+                <div className="flex items-center gap-6">
+                  {/* Date */}
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Calendar className="h-4 w-4 text-gray-400" />
+                    <span className="font-medium text-gray-900">
+                      {new Date(order.created_at).toLocaleDateString(
+                        undefined,
+                        {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        }
+                      )}
+                    </span>
+                  </div>
+
+                  {/* Total */}
+                  <div className="hidden items-center gap-2 text-sm text-gray-600 sm:flex">
+                    <CreditCard className="h-4 w-4 text-gray-400" />
+                    <span className="font-medium text-gray-900">
+                      {formatPrice(order.total, order.currency_code)}
+                    </span>
                   </div>
                 </div>
 
-                <div className="p-4">
-                  <ul className="divide-y divide-gray-100">
-                    {order.items.map((item) => (
-                      <li
-                        key={item.id}
-                        className="flex items-center justify-between py-3"
-                      >
-                        <div className="flex items-center gap-4">
-                          {/* Fallback image if thumbnail is missing */}
-                          <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-md border border-gray-200 bg-gray-100">
-                            <img
-                              src={
-                                item.thumbnail ||
-                                "https://placehold.co/100?text=Gift"
-                              }
-                              alt={item.title}
-                              className="h-full w-full object-cover"
-                            />
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900">
-                              {item.title}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              Qty: {item.quantity}
-                            </p>
+                {/* Status Badge */}
+                <div className="flex items-center gap-3">
+                  <StatusBadge status={order.status} />
+                  <span className="hidden text-xs font-mono text-gray-400 sm:inline-block">
+                    #{order.display_id}
+                  </span>
+                </div>
+              </div>
+
+              {/* Order Items Content */}
+              <div className="p-6">
+                <ul className="divide-y divide-gray-50">
+                  {order.items?.map((item) => (
+                    <li
+                      key={item.id}
+                      className="flex items-center justify-between py-4 first:pt-0 last:pb-0"
+                    >
+                      <div className="flex items-center gap-4">
+                        {/* Product Image */}
+                        <div className="relative h-16 w-16 overflow-hidden rounded-xl border border-gray-100 bg-gray-50">
+                          <img
+                            src={
+                              item.thumbnail ||
+                              "https://dummyimage.com/100x100/eee/aaa"
+                            }
+                            alt={item.title}
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+
+                        {/* Product Info */}
+                        <div>
+                          <p className="font-semibold text-gray-900">
+                            {item.title}
+                          </p>
+                          <div className="mt-1 flex items-center gap-2 text-sm text-gray-500">
+                            <span>Qty: {item.quantity}</span>
+                            <span className="text-gray-300">•</span>
+                            <span>
+                              {item.variant?.title !== "Default Variant"
+                                ? item.variant?.title
+                                : "Standard"}
+                            </span>
                           </div>
                         </div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {formatPrice(item.unit_price, order.currency_code)}
-                        </p>
-                      </li>
-                    ))}
-                  </ul>
+                      </div>
 
-                  {/* Action Bar */}
-                  <div className="mt-4 flex justify-end border-t border-gray-100 pt-4">
-                    <button className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-800">
-                      View Order Details{" "}
-                      <ChevronRight className="ml-1 h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        )}
+                      {/* Item Price */}
+                      <p className="font-medium text-gray-900">
+                        {formatPrice(item.unit_price, order.currency_code)}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Action Footer (Optional - "View Details" logic can go here later) */}
+              {/* <div className="flex justify-end border-t border-gray-50 bg-white px-6 py-3">
+                <button className="flex items-center text-sm font-semibold text-black hover:underline">
+                  View Invoice <ChevronRight className="ml-1 h-4 w-4" />
+                </button>
+              </div> 
+              */}
+            </motion.div>
+          ))}
+        </div>
       </div>
     </AccountLayout>
+  );
+}
+
+// --- HELPER COMPONENT: Status Badge ---
+function StatusBadge({ status }) {
+  const styles = {
+    pending: "bg-yellow-50 text-yellow-700 border-yellow-100",
+    completed: "bg-green-50 text-green-700 border-green-100",
+    canceled: "bg-red-50 text-red-700 border-red-100",
+    archived: "bg-gray-100 text-gray-700 border-gray-200",
+  };
+
+  const icons = {
+    pending: <Clock className="mr-1.5 h-3 w-3" />,
+    completed: <Package className="mr-1.5 h-3 w-3" />,
+    canceled: <div className="mr-1.5 h-1.5 w-1.5 rounded-full bg-red-500" />,
+    archived: <div className="mr-1.5 h-1.5 w-1.5 rounded-full bg-gray-500" />,
+  };
+
+  const currentStyle = styles[status] || styles.archived;
+  const currentIcon = icons[status] || icons.archived;
+
+  return (
+    <span
+      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize ${currentStyle}`}
+    >
+      {currentIcon}
+      {status}
+    </span>
   );
 }

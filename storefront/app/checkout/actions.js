@@ -10,93 +10,95 @@ export async function placeOrder({ cartId, email, token }) {
     "x-publishable-api-key": API_KEY,
   };
 
+  // 1. ATTACH TOKEN (Crucial: This is how Medusa identifies the user)
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  console.log(`[Checkout] Starting for Cart: ${cartId}`);
+  console.log(`[Checkout] 🚀 STARTING for Cart: ${cartId}`);
 
   try {
-    // 1. Update Cart Email
-    if (email) {
-      console.log("[Checkout] Updating email...");
-      const emailRes = await fetch(`${BASE_URL}/store/carts/${cartId}`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ email }),
-      });
-      if (!emailRes.ok)
-        console.error("Email Update Failed:", await emailRes.text());
+    // --- STEP 1: LINK CUSTOMER ---
+    // We update the email. Because we are sending the 'Authorization' header,
+    // Medusa will AUTOMATICALLY link the cart to the logged-in customer.
+    // We DO NOT send 'customer_id' in the body (that causes the 400 error).
+
+    let emailToUpdate = email;
+
+    // If logged in, prefer the account email to ensure consistency
+    if (token) {
+      try {
+        const customerRes = await fetch(`${BASE_URL}/store/customers/me`, {
+          headers,
+        });
+        const customerData = await customerRes.json();
+        if (customerData.customer?.email) {
+          emailToUpdate = customerData.customer.email;
+          console.log(`[Checkout] 👤 Auth User Detected: ${emailToUpdate}`);
+        }
+      } catch (e) {
+        console.warn(
+          "Could not fetch customer profile, sticking to form email."
+        );
+      }
     }
 
-    // --- STEP 2: SHIPPING AUTO-SELECT (DEBUGGING ADDED) ---
-    console.log("[Checkout] Fetching shipping options...");
-    const optionsRes = await fetch(
-      `${BASE_URL}/store/shipping-options?cart_id=${cartId}`,
-      {
-        headers,
-      }
+    console.log(
+      `[Checkout] 🔄 Linking Cart & Updating Email to: ${emailToUpdate}`
     );
 
+    const updateRes = await fetch(`${BASE_URL}/store/carts/${cartId}`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        email: emailToUpdate,
+        // REMOVED: customer_id (This was the cause of the crash)
+      }),
+    });
+
+    if (!updateRes.ok) {
+      // If this fails, we log it but don't stop.
+      // Sometimes a cart is already linked or email is same.
+      console.error("⚠️ Cart Update Warning:", await updateRes.text());
+    } else {
+      const updateData = await updateRes.json();
+      const linkedId = updateData.cart?.customer_id;
+      console.log(
+        `[Checkout] ✅ Cart Update Success. Linked Customer ID: ${
+          linkedId || "Guest"
+        }`
+      );
+    }
+
+    // --- STEP 2: SHIPPING ---
+    const optionsRes = await fetch(
+      `${BASE_URL}/store/shipping-options?cart_id=${cartId}`,
+      { headers }
+    );
     const optionsData = await optionsRes.json();
     const options = optionsData.shipping_options || [];
 
-    console.log(
-      `[Checkout] Found ${options.length} shipping options:`,
-      options.map((o) => o.name)
-    );
-
     if (options.length > 0) {
-      // Select the first one automatically
-      const firstOption = options[0];
-      console.log(
-        `[Checkout] Auto-selecting option: ${firstOption.name} (${firstOption.id})`
-      );
-
-      const addShippingRes = await fetch(
-        `${BASE_URL}/store/carts/${cartId}/shipping-methods`,
-        {
-          method: "POST",
-          headers,
-          body: JSON.stringify({ option_id: firstOption.id }),
-        }
-      );
-
-      if (!addShippingRes.ok) {
-        console.error(
-          "[Checkout] Failed to add shipping method:",
-          await addShippingRes.text()
-        );
-        throw new Error("Could not apply shipping method");
-      }
-      console.log("[Checkout] Shipping method applied successfully.");
-    } else {
-      console.error(
-        "[Checkout] CRITICAL: No shipping options found for this cart/region."
-      );
-      throw new Error("No shipping options available. Check Region settings.");
+      await fetch(`${BASE_URL}/store/carts/${cartId}/shipping-methods`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ option_id: options[0].id }),
+      });
     }
-    // -------------------------------------------------------
 
-    // 3. Create Payment Collection
-    console.log("[Checkout] Creating Payment Collection...");
+    // --- STEP 3: PAYMENT ---
     const collectionRes = await fetch(`${BASE_URL}/store/payment-collections`, {
       method: "POST",
       headers,
       body: JSON.stringify({ cart_id: cartId }),
     });
 
-    if (!collectionRes.ok) {
-      const text = await collectionRes.text();
-      console.error("Create Collection Error:", text);
+    if (!collectionRes.ok)
       throw new Error("Failed to create payment collection");
-    }
 
     const collectionData = await collectionRes.json();
     const collectionId = collectionData.payment_collection?.id;
 
-    // 4. Initialize Payment Session (System Default)
-    console.log("[Checkout] Initializing Payment Session...");
     const sessionRes = await fetch(
       `${BASE_URL}/store/payment-collections/${collectionId}/payment-sessions`,
       {
@@ -106,14 +108,10 @@ export async function placeOrder({ cartId, email, token }) {
       }
     );
 
-    if (!sessionRes.ok) {
-      const text = await sessionRes.text();
-      console.error("Payment Session Error:", text);
-      throw new Error("Failed to init payment session");
-    }
+    if (!sessionRes.ok) throw new Error("Failed to init payment session");
 
-    // 5. Complete Cart
-    console.log("[Checkout] Completing Order...");
+    // --- STEP 4: COMPLETE ---
+    console.log("[Checkout] ✅ Completing Order...");
     const completeRes = await fetch(
       `${BASE_URL}/store/carts/${cartId}/complete`,
       {
@@ -126,7 +124,6 @@ export async function placeOrder({ cartId, email, token }) {
     const completeData = await completeRes.json();
 
     if (!completeRes.ok) {
-      console.error("Completion Error:", completeData);
       throw new Error(completeData.message || "Order completion failed");
     }
 
@@ -136,7 +133,7 @@ export async function placeOrder({ cartId, email, token }) {
         completeData.type === "order" ? completeData.order.id : completeData.id,
     };
   } catch (error) {
-    console.error("[Checkout] Server Action Error:", error);
+    console.error("[Checkout] 💥 Error:", error);
     return { success: false, error: error.message };
   }
 }
