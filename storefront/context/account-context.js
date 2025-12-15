@@ -109,6 +109,23 @@ export function AccountProvider({ children }) {
   }
 
   // 3. Register Function
+  // --- New: Request OTP ---
+  async function requestOtp(email) {
+    return await medusaFetch("/store/auth/request-otp", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  // --- New: Verify OTP (Optional check before registering) ---
+  async function verifyOtp(email, otp) {
+    return await medusaFetch("/store/auth/verify-register", {
+      method: "POST",
+      body: JSON.stringify({ email, otp }),
+    });
+  }
+
+  // --- Updated: Register Function ---
   async function register(payload) {
     try {
       // Step 1: Create Identity
@@ -173,7 +190,15 @@ export function AccountProvider({ children }) {
 
   return (
     <AccountContext.Provider
-      value={{ customer, isLoading, login, register, logout }}
+      value={{
+        customer,
+        isLoading,
+        login,
+        register,
+        logout,
+        requestOtp,
+        verifyOtp,
+      }}
     >
       {children}
     </AccountContext.Provider>
