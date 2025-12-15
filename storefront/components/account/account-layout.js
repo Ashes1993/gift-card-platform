@@ -1,4 +1,3 @@
-// storefront/components/account/account-layout.jsx
 "use client";
 
 import { useAccount } from "@/context/account-context";

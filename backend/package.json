@@ -26,7 +26,8 @@
     "@medusajs/cli": "2.12.1",
     "@medusajs/framework": "2.12.1",
     "@medusajs/medusa": "2.12.1",
-    "medusa-payment-manual": "^1.0.25"
+    "medusa-payment-manual": "^1.0.25",
+    "resend": "^6.6.0"
   },
   "devDependencies": {
     "@medusajs/test-utils": "2.12.1",
