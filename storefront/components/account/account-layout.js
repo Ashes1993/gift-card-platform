@@ -8,7 +8,7 @@ import { User, ShoppingBag, Headset, LogOut } from "lucide-react";
 const navItems = [
   { name: "Profile", href: "/account/profile", icon: User },
   { name: "Orders", href: "/account/orders", icon: ShoppingBag },
-  { name: "Support Tickets", href: "/account/support", icon: Headset },
+  { name: "Support", href: "/support", icon: Headset },
 ];
 
 export default function AccountLayout({ children, activeTab }) {
