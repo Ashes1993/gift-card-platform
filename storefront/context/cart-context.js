@@ -15,17 +15,13 @@ export function CartProvider({ children }) {
       const cartId = localStorage.getItem("cart_id");
 
       if (cartId) {
-        // Fetch existing cart
-        // If retrieve fails (404), catch it and return null cart
-        const { cart } = await medusa.carts.retrieve(cartId).catch(() => {
-          return { cart: null };
-        });
+        const { cart } = await medusa.carts
+          .retrieve(cartId)
+          .catch(() => ({ cart: null }));
 
-        // Check if cart exists AND isn't completed
         if (cart && !cart.completed_at) {
           setCart(cart);
         } else {
-          // If completed or doesn't exist, start fresh
           await createNewCart();
         }
       } else {
@@ -35,17 +31,16 @@ export function CartProvider({ children }) {
     loadCart();
   }, []);
 
-  // 2. Create a new cart (Updated to return the object)
+  // 2. Create a new cart
   async function createNewCart() {
     const { cart } = await medusa.carts.create();
     setCart(cart);
     localStorage.setItem("cart_id", cart.id);
-    return cart; // <--- Return it so we can use it immediately
+    return cart;
   }
 
-  // 3. Add Item Function (With "Self-Healing" Retry)
+  // 3. Add Item Function (Self-Healing)
   async function addToCart(variantId) {
-    // If no cart in state, try to find one or create one
     let activeCartId = cart?.id;
 
     if (!activeCartId) {
@@ -56,46 +51,49 @@ export function CartProvider({ children }) {
     setIsOpen(true);
 
     try {
-      // Attempt 1: Add to current cart
       const { cart: updatedCart } = await medusa.carts.lineItems.create(
         activeCartId,
-        {
-          variant_id: variantId,
-          quantity: 1,
-        }
+        { variant_id: variantId, quantity: 1 }
       );
       setCart(updatedCart);
     } catch (e) {
-      console.warn(
-        "Failed to add item (Cart might be completed). Retrying with new cart..."
-      );
-
+      console.warn("Cart add failed. Retrying with new cart...");
       try {
-        // Attempt 2: Dead Cart Detected. Create New & Retry.
         const freshCart = await createNewCart();
-
         const { cart: retryCart } = await medusa.carts.lineItems.create(
           freshCart.id,
-          {
-            variant_id: variantId,
-            quantity: 1,
-          }
+          { variant_id: variantId, quantity: 1 }
         );
         setCart(retryCart);
       } catch (retryError) {
-        console.error(
-          "Critical: Failed to add item even to new cart.",
-          retryError
-        );
         alert("Could not add item. Please refresh the page.");
       }
     }
   }
 
-  // 4. Remove Item Function (Kept your native fetch fix)
-  async function removeItem(lineId) {
+  // --- 4. NEW: Update Quantity Function ---
+  async function updateItem(lineId, quantity) {
     if (!cart?.id) return;
 
+    // Optimistic UI check: Don't allow less than 1 (use remove for that)
+    if (quantity < 1) return;
+
+    try {
+      const { cart: updatedCart } = await medusa.carts.lineItems.update(
+        cart.id,
+        lineId,
+        { quantity }
+      );
+      setCart(updatedCart);
+    } catch (e) {
+      console.error("Failed to update quantity:", e);
+      alert("Cannot update quantity. Likely out of stock.");
+    }
+  }
+
+  // 5. Remove Item Function
+  async function removeItem(lineId) {
+    if (!cart?.id) return;
     const BASE_URL =
       process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://127.0.0.1:9000";
     const API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
@@ -111,7 +109,6 @@ export function CartProvider({ children }) {
           },
         }
       );
-
       const data = await res.json();
       const updatedCart = data.parent || data.cart;
 
@@ -126,7 +123,7 @@ export function CartProvider({ children }) {
     }
   }
 
-  // 5. Explicit Reset Helper (Call this on Checkout Success Page)
+  // 6. Reset Helper
   const resetCart = async () => {
     localStorage.removeItem("cart_id");
     setCart(null);
@@ -135,12 +132,14 @@ export function CartProvider({ children }) {
 
   return (
     <CartContext.Provider
+      // Expose updateItem here
       value={{
         cart,
         setCart,
         isOpen,
         setIsOpen,
         addToCart,
+        updateItem,
         removeItem,
         resetCart,
       }}

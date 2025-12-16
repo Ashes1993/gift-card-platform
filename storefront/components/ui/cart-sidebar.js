@@ -1,20 +1,20 @@
 "use client";
 
 import { useCart } from "@/context/cart-context";
-import { formatPrice } from "@/lib/utils"; // <--- Import utility
-import { motion, AnimatePresence } from "framer-motion"; // <--- Import animation library
+import { formatPrice } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { X, Trash2, ShoppingBag } from "lucide-react";
+import { X, Trash2, ShoppingBag, Plus, Minus } from "lucide-react";
 
 export function CartSidebar() {
-  const { cart, isOpen, setIsOpen, removeItem } = useCart();
+  // Destructure updateItem from context
+  const { cart, isOpen, setIsOpen, removeItem, updateItem } = useCart();
 
-  // Safely get currency code (fallback to EUR if missing)
   const currencyCode = cart?.region?.currency_code?.toUpperCase() || "EUR";
-  const itemCount = cart?.items?.length || 0;
+  const itemCount =
+    cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
 
-  // Calculate Subtotal safely (handle V2 structure)
-  // Sometimes subtotal is at cart.subtotal, sometimes we calc it manually
+  // Calculate Subtotal safely
   const subtotal =
     cart?.subtotal ||
     cart?.items?.reduce((acc, item) => {
@@ -25,8 +25,8 @@ export function CartSidebar() {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="relative z-50">
-          {/* 1. Dark Overlay (Fade In/Out) */}
+        <div className="relative z-[100]">
+          {/* 1. Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -35,34 +35,36 @@ export function CartSidebar() {
             className="fixed inset-0 bg-black/40 backdrop-blur-sm"
           />
 
-          {/* 2. Sliding Panel (Slide In/Out) */}
+          {/* 2. Slide Panel */}
           <motion.div
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            transition={{ type: "spring", damping: 30, stiffness: 300 }}
             className="fixed inset-y-0 right-0 flex w-full max-w-md flex-col bg-white shadow-2xl"
           >
             {/* Header */}
             <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
-              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                 <ShoppingBag className="h-5 w-5" />
-                Shopping Cart ({itemCount})
+                My Cart{" "}
+                <span className="text-gray-400 font-normal">({itemCount})</span>
               </h2>
               <button
                 onClick={() => setIsOpen(false)}
-                className="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 transition-colors"
+                className="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-black transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             {/* Items List */}
-            <div className="flex-1 overflow-y-auto px-6 py-6">
+            <div className="flex-1 overflow-y-auto px-6 py-4">
               <ul className="space-y-6">
                 {cart?.items?.map((item) => (
-                  <motion.li layout key={item.id} className="flex py-2">
-                    <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-xl border border-gray-100 bg-gray-50">
+                  <motion.li layout key={item.id} className="flex gap-4">
+                    {/* Image */}
+                    <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-xl border border-gray-100 bg-gray-50 relative">
                       <img
                         src={
                           item.thumbnail ||
@@ -73,50 +75,94 @@ export function CartSidebar() {
                       />
                     </div>
 
-                    <div className="ml-4 flex flex-1 flex-col justify-between">
+                    {/* Details */}
+                    <div className="flex flex-1 flex-col justify-between py-1">
                       <div>
-                        <div className="flex justify-between text-base font-medium text-gray-900">
-                          <h3 className="line-clamp-1">{item.title}</h3>
-                          <p className="ml-4">
-                            {/* FIX: Use formatPrice utility */}
-                            {formatPrice(item.unit_price, currencyCode)}
+                        <div className="flex justify-between">
+                          <h3 className="text-sm font-bold text-gray-900 line-clamp-2 pr-4">
+                            {item.title}
+                          </h3>
+                          <p className="text-sm font-bold text-gray-900 whitespace-nowrap">
+                            {formatPrice(
+                              item.unit_price * item.quantity,
+                              currencyCode
+                            )}
                           </p>
                         </div>
-                        <p className="mt-1 text-sm text-gray-500 line-clamp-1">
+                        <p className="mt-1 text-xs text-gray-500">
                           {item.variant?.title !== "Default Variant"
                             ? item.variant?.title
-                            : ""}
+                            : "Digital Item"}
                         </p>
                       </div>
 
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2 rounded-lg border border-gray-200 px-2 py-1">
-                          <span className="text-xs text-gray-500">Qty:</span>
-                          <span className="font-medium">{item.quantity}</span>
+                      {/* Controls Footer */}
+                      <div className="flex items-center justify-between mt-3">
+                        {/* Quantity Controls */}
+                        <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-1">
+                          <button
+                            onClick={() => {
+                              if (item.quantity > 1) {
+                                updateItem(item.id, item.quantity - 1);
+                              } else {
+                                removeItem(item.id);
+                              }
+                            }}
+                            className="p-1 rounded-md hover:bg-white hover:shadow-sm text-gray-500 hover:text-black transition-all"
+                          >
+                            {item.quantity === 1 ? (
+                              <Trash2 size={14} className="text-red-500" />
+                            ) : (
+                              <Minus size={14} />
+                            )}
+                          </button>
+
+                          <span className="text-xs font-semibold w-3 text-center">
+                            {item.quantity}
+                          </span>
+
+                          <button
+                            onClick={() =>
+                              updateItem(item.id, item.quantity + 1)
+                            }
+                            className="p-1 rounded-md hover:bg-white hover:shadow-sm text-gray-500 hover:text-black transition-all"
+                          >
+                            <Plus size={14} />
+                          </button>
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={() => removeItem(item.id)}
-                          className="flex items-center gap-1 font-medium text-red-500 hover:text-red-700 transition-colors"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          <span className="text-xs">Remove</span>
-                        </button>
+                        {/* Remove Text Link (Optional redundant check) */}
+                        {item.quantity > 1 && (
+                          <button
+                            onClick={() => removeItem(item.id)}
+                            className="text-xs font-medium text-gray-400 hover:text-red-600 transition-colors"
+                          >
+                            Remove
+                          </button>
+                        )}
                       </div>
                     </div>
                   </motion.li>
                 ))}
 
-                {itemCount === 0 && (
-                  <div className="flex h-full flex-col items-center justify-center space-y-4 text-center">
-                    <ShoppingBag className="h-16 w-16 text-gray-200" />
-                    <p className="text-gray-500">Your cart is empty.</p>
+                {(!cart?.items || cart.items.length === 0) && (
+                  <div className="flex h-[50vh] flex-col items-center justify-center space-y-4 text-center">
+                    <div className="h-20 w-20 bg-gray-50 rounded-full flex items-center justify-center">
+                      <ShoppingBag className="h-8 w-8 text-gray-300" />
+                    </div>
+                    <div>
+                      <p className="text-lg font-semibold text-gray-900">
+                        Your cart is empty
+                      </p>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Looks like you haven't added anything yet.
+                      </p>
+                    </div>
                     <button
                       onClick={() => setIsOpen(false)}
-                      className="text-sm font-semibold text-black hover:underline"
+                      className="mt-4 rounded-full bg-black px-6 py-2 text-sm font-bold text-white hover:bg-gray-800"
                     >
-                      Continue Shopping
+                      Start Shopping
                     </button>
                   </div>
                 )}
@@ -125,26 +171,23 @@ export function CartSidebar() {
 
             {/* Footer */}
             {itemCount > 0 && (
-              <div className="border-t border-gray-100 bg-gray-50/50 px-6 py-6">
-                <div className="flex justify-between text-base font-medium text-gray-900">
+              <div className="border-t border-gray-100 bg-white px-6 py-6 pb-8 safe-area-bottom">
+                <div className="flex justify-between text-base font-medium text-gray-900 mb-2">
                   <p>Subtotal</p>
-                  <p>
-                    {/* FIX: Use formatPrice for Subtotal too */}
+                  <p className="font-bold text-xl">
                     {formatPrice(subtotal, currencyCode)}
                   </p>
                 </div>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="text-xs text-gray-500 mb-6">
                   Shipping and taxes calculated at checkout.
                 </p>
-                <div className="mt-6">
-                  <Link
-                    href="/checkout"
-                    onClick={() => setIsOpen(false)}
-                    className="flex w-full items-center justify-center rounded-full bg-black px-6 py-4 text-base font-bold text-white shadow-lg hover:bg-gray-800 hover:shadow-xl transition-all"
-                  >
-                    Checkout
-                  </Link>
-                </div>
+                <Link
+                  href="/checkout"
+                  onClick={() => setIsOpen(false)}
+                  className="flex w-full items-center justify-center rounded-xl bg-black px-6 py-4 text-base font-bold text-white shadow-lg hover:bg-gray-800 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                >
+                  Checkout
+                </Link>
               </div>
             )}
           </motion.div>
