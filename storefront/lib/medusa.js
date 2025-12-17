@@ -15,27 +15,26 @@ async function medusaFetch(endpoint, options = {}) {
   };
 
   // V2 requires 'fields' for most GET requests to return relations
-  // We append a default set if none is provided in the URL
   if (
     !url.searchParams.has("fields") &&
     options.method !== "POST" &&
     options.method !== "DELETE"
   ) {
-    // Default fields often needed
-    // url.searchParams.append("fields", "*variants,*variants.prices")
-    // Note: It's safer to let the specific functions handle fields,
-    // but this is a fallback if needed.
+    // Optional: Add default fields if needed
   }
 
   try {
     const res = await fetch(url.toString(), {
       ...options,
       headers,
-      next: { revalidate: 3600 }, // Cache for 1 hour by default
+      // -------------------------------------------------------
+      // FIX: Disable caching to see price updates immediately.
+      // -------------------------------------------------------
+      cache: "no-store",
+      // If you want caching later for production, use: next: { revalidate: 3600 }
     });
 
     if (!res.ok) {
-      // Allow 404s to be handled by the caller
       if (res.status === 404) return null;
       throw new Error(`Medusa API Error: ${res.status} ${res.statusText}`);
     }
@@ -84,8 +83,6 @@ export async function getProductByHandle(handle) {
 }
 
 // Keep the V1 client ONLY if you absolutely need it for the cart context
-// (though we should eventually replace that too).
-// For now, we export it to prevent breaking the Cart Context if it still imports 'medusa'.
 import Medusa from "@medusajs/medusa-js";
 export const medusa = new Medusa({
   baseUrl: BASE_URL,

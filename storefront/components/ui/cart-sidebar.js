@@ -7,14 +7,14 @@ import Link from "next/link";
 import { X, Trash2, ShoppingBag, Plus, Minus } from "lucide-react";
 
 export function CartSidebar() {
-  // Destructure updateItem from context
   const { cart, isOpen, setIsOpen, removeItem, updateItem } = useCart();
 
-  const currencyCode = cart?.region?.currency_code?.toUpperCase() || "EUR";
+  // Robust fallback
+  const currencyCode = cart?.region?.currency_code?.toUpperCase() || "USD";
+
   const itemCount =
     cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
 
-  // Calculate Subtotal safely
   const subtotal =
     cart?.subtotal ||
     cart?.items?.reduce((acc, item) => {
@@ -98,7 +98,6 @@ export function CartSidebar() {
 
                       {/* Controls Footer */}
                       <div className="flex items-center justify-between mt-3">
-                        {/* Quantity Controls */}
                         <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-1">
                           <button
                             onClick={() => {
@@ -130,16 +129,6 @@ export function CartSidebar() {
                             <Plus size={14} />
                           </button>
                         </div>
-
-                        {/* Remove Text Link (Optional redundant check) */}
-                        {item.quantity > 1 && (
-                          <button
-                            onClick={() => removeItem(item.id)}
-                            className="text-xs font-medium text-gray-400 hover:text-red-600 transition-colors"
-                          >
-                            Remove
-                          </button>
-                        )}
                       </div>
                     </div>
                   </motion.li>

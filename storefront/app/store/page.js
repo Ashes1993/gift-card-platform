@@ -1,11 +1,15 @@
-import ProductCard from "@/components/ui/product-card";
+import ProductCard from "@/components/product/product-card";
 import { getProducts } from "@/lib/medusa";
 
+export const dynamic = "force-dynamic";
+
+// 1. Make the function async
 export default async function ProductsPage({ searchParams }) {
-  // Pass filter parameters (if present) to the getProducts API call
+  // 2. AWAIT the searchParams before using them (CRITICAL FIX)
+  const params = await searchParams;
+
   const { products } = (await getProducts({
-    q: searchParams.q || "",
-    // Add other filter parameters here later (e.g., category_id: searchParams.category)
+    q: params.q || "",
   })) || { products: [] };
 
   return (
@@ -14,14 +18,12 @@ export default async function ProductsPage({ searchParams }) {
         Shop All Gift Cards
       </h1>
 
-      {/* Search and Filter Section Placeholder (Item 4) */}
       <div className="mb-8 p-4 border border-gray-100 rounded-lg bg-white shadow-sm">
         <p className="text-sm text-gray-500">
           **Future Scope:** Search by brand, filter by price and category.
         </p>
       </div>
 
-      {/* Product Grid */}
       <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
         {products.map((product) => (
           <ProductCard key={product.id} product={product} />

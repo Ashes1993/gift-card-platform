@@ -1,22 +1,27 @@
-// storefront/components/ui/productCard.js
-
 "use client";
 
 import Link from "next/link";
-import { formatPrice } from "@/lib/utils";
+import { useCart } from "@/context/cart-context";
+import { formatPrice, getVariantPrice } from "@/lib/utils";
 import { motion } from "framer-motion";
 
-// Add Framer Motion wrapper
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 };
 
 export default function ProductCard({ product }) {
-  const price = product.variants?.[0].prices?.[0];
-  const formattedPrice = price
-    ? formatPrice(price.amount, price.currency_code)
-    : "N/A";
+  const { cart } = useCart();
+
+  // 1. Determine Currency (Default to USD if cart isn't ready)
+  const currencyCode = cart?.region?.currency_code || "usd";
+
+  // 2. Get the correct price for this currency
+  // We use the first variant as the "display" price
+  const displayVariant = product.variants?.[0];
+  const priceAmount = getVariantPrice(displayVariant, currencyCode);
+
+  const formattedPrice = formatPrice(priceAmount, currencyCode);
 
   const linkPath = `/product/${product.handle || product.id}`;
 

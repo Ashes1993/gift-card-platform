@@ -18,8 +18,9 @@ export function Navbar() {
     cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
 
   // Navigation Links
+  // UPDATE: Added 'prefetch: false' to Store to fix the caching issue
   const navLinks = [
-    { name: "Store", href: "/store" },
+    { name: "Store", href: "/store", prefetch: false },
     { name: "Support", href: "/support" },
     { name: "About", href: "/about" },
   ];
@@ -53,6 +54,8 @@ export function Navbar() {
               <Link
                 key={link.name}
                 href={link.href}
+                // FIX: Apply prefetch setting (false for Store)
+                prefetch={link.prefetch}
                 className={`text-sm font-medium transition-colors duration-200 ${
                   isActive
                     ? "text-black font-semibold"
@@ -122,6 +125,8 @@ export function Navbar() {
               <Link
                 key={link.name}
                 href={link.href}
+                // FIX: Apply prefetch setting here too
+                prefetch={link.prefetch}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={`block rounded-lg px-4 py-3 text-base font-medium transition-colors ${
                   pathname === link.href

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import ProductCard from "@/components/ui/product-card"; // Ensure filename matches exactly
+import ProductCard from "@/components/product/product-card"; // Ensure filename matches exactly
 import { getProducts } from "@/lib/medusa";
 import { Hero } from "@/components/home/hero"; // <--- Import Client Component
 import { Features } from "@/components/home/features"; // <--- Import Client Component

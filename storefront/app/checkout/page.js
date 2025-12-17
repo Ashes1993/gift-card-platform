@@ -5,7 +5,13 @@ import { useCart } from "@/context/cart-context";
 import { useAccount } from "@/context/account-context";
 import { formatPrice } from "@/lib/utils";
 import Link from "next/link";
-import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import {
+  Loader2,
+  CheckCircle,
+  AlertCircle,
+  CreditCard,
+  Bitcoin,
+} from "lucide-react";
 import { placeOrder } from "./actions";
 
 const BASE_URL =
@@ -17,7 +23,8 @@ export default function CheckoutPage() {
   const { customer } = useAccount();
 
   const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // For Credit Card
+  const [cryptoLoading, setCryptoLoading] = useState(false); // For Crypto
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [orderId, setOrderId] = useState(null);
@@ -32,35 +39,29 @@ export default function CheckoutPage() {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center space-y-4">
         <h2 className="text-2xl font-bold">Your cart is empty</h2>
-        <Link href="/store" className="text-blue-600 hover:underline">
+        <Link href="/" className="text-blue-600 hover:underline">
           Go to Store
         </Link>
       </div>
     );
   }
 
-  // --- CHECKOUT LOGIC ---
+  // --- 1. STANDARD CHECKOUT (Test/Credit Card) ---
   async function handlePlaceOrder(e) {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
-      // Get the token from local storage to pass to the server
       const token = localStorage.getItem("medusa_auth_token");
-
-      // Call the Server Action
       const result = await placeOrder({
         cartId: cart.id,
-        email: customer ? null : email, // Only send email if guest
+        email: customer ? null : email,
         token,
       });
 
-      if (!result.success) {
-        throw new Error(result.error);
-      }
+      if (!result.success) throw new Error(result.error);
 
-      // Success!
       setOrderId(result.orderId);
       setSuccess(true);
       setCart(null);
@@ -73,6 +74,58 @@ export default function CheckoutPage() {
     }
   }
 
+  // --- 2. CRYPTO CHECKOUT (New Integration) ---
+  async function handleCryptoPayment(e) {
+    e.preventDefault();
+
+    // Validation
+    if (!email && !customer) {
+      setError("Please enter your email address first.");
+      return;
+    }
+
+    setCryptoLoading(true);
+    setError("");
+
+    try {
+      // Step A: Ensure Email is attached to Cart (Crucial for Guest Checkout)
+      // We manually update the cart here so the backend has the email for the invoice
+      if (!customer) {
+        await fetch(`${BASE_URL}/store/carts/${cart.id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-publishable-api-key": API_KEY,
+          },
+          body: JSON.stringify({ email }),
+        });
+      }
+
+      // Step B: Request Crypto Invoice
+      const res = await fetch(`${BASE_URL}/store/payment/crypto`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-publishable-api-key": API_KEY,
+        },
+        body: JSON.stringify({ cart_id: cart.id }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Failed to initialize crypto payment");
+      }
+
+      // Step C: Redirect to NOWPayments
+      window.location.href = data.payment_url;
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Crypto payment failed.");
+      setCryptoLoading(false);
+    }
+  }
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
       <h1 className="mb-8 text-3xl font-extrabold text-gray-900">Checkout</h1>
@@ -80,7 +133,7 @@ export default function CheckoutPage() {
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
         {/* LEFT: Form */}
         <div>
-          <form onSubmit={handlePlaceOrder} className="space-y-6">
+          <form className="space-y-6">
             <div>
               <label
                 htmlFor="email"
@@ -95,7 +148,7 @@ export default function CheckoutPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  disabled={!!customer} // Disable if logged in
+                  disabled={!!customer}
                   className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 border"
                   placeholder="you@example.com"
                 />
@@ -116,25 +169,49 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex w-full items-center justify-center rounded-md border border-transparent bg-black px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
-                  Processing...
-                </>
-              ) : (
-                "Place Order (Test)"
-              )}
-            </button>
+            <div className="space-y-3 pt-4">
+              {/* Button 1: Crypto (Primary) */}
+              <button
+                onClick={handleCryptoPayment}
+                disabled={loading || cryptoLoading}
+                className="flex w-full items-center justify-center rounded-lg bg-green-600 px-6 py-4 text-base font-bold text-white shadow-md hover:bg-green-700 hover:shadow-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {cryptoLoading ? (
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                ) : (
+                  <Bitcoin className="mr-2 h-5 w-5" />
+                )}
+                Pay with Crypto
+              </button>
+
+              {/* Divider */}
+              <div className="relative flex py-2 items-center">
+                <div className="flex-grow border-t border-gray-200"></div>
+                <span className="flex-shrink-0 mx-4 text-gray-400 text-xs uppercase tracking-wider">
+                  Or pay with card
+                </span>
+                <div className="flex-grow border-t border-gray-200"></div>
+              </div>
+
+              {/* Button 2: Credit Card (Test) */}
+              <button
+                onClick={handlePlaceOrder}
+                disabled={loading || cryptoLoading}
+                className="flex w-full items-center justify-center rounded-lg border-2 border-gray-200 bg-white px-6 py-3 text-base font-bold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                ) : (
+                  <CreditCard className="mr-2 h-5 w-5" />
+                )}
+                Credit Card (Test)
+              </button>
+            </div>
           </form>
         </div>
 
         {/* RIGHT: Order Summary */}
-        <div className="rounded-lg bg-gray-50 p-6">
+        <div className="rounded-lg bg-gray-50 p-6 h-fit sticky top-24">
           <h2 className="text-lg font-medium text-gray-900">Order Summary</h2>
           <ul className="mt-6 divide-y divide-gray-200">
             {cart.items.map((item) => (
@@ -154,8 +231,7 @@ export default function CheckoutPage() {
           <div className="mt-6 border-t border-gray-200 pt-6">
             <div className="flex items-center justify-between">
               <p className="text-base font-medium text-gray-900">Total</p>
-              <p className="text-base font-medium text-gray-900">
-                {/* Calculate Rough Total if cart.total is missing (common in V2 drafts) */}
+              <p className="text-xl font-bold text-gray-900">
                 {cart.total
                   ? formatPrice(cart.total, cart.currency_code)
                   : formatPrice(
@@ -176,28 +252,30 @@ export default function CheckoutPage() {
 
 function SuccessView({ orderId }) {
   return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
-      <CheckCircle className="h-16 w-16 text-green-500 mb-4" />
+    <div className="flex min-h-[60vh] flex-col items-center justify-center text-center px-4">
+      <div className="rounded-full bg-green-100 p-4 mb-4">
+        <CheckCircle className="h-12 w-12 text-green-600" />
+      </div>
       <h2 className="text-3xl font-extrabold text-gray-900">
         Order Confirmed!
       </h2>
       <p className="mt-2 text-lg text-gray-600">
         Thank you for your purchase. Your order ID is{" "}
-        <span className="font-mono font-bold">{orderId}</span>.
+        <span className="font-mono font-bold text-black">#{orderId}</span>.
       </p>
-      <p className="text-gray-500 mt-2">
-        Your gift card codes have been sent to your email.
+      <p className="text-gray-500 mt-2 max-w-md mx-auto">
+        Your digital gift card codes have been sent to your email address.
       </p>
       <div className="mt-8 flex gap-4">
         <Link
-          href="/store"
-          className="rounded-full bg-black px-6 py-3 text-sm font-semibold text-white hover:bg-gray-800"
+          href="/"
+          className="rounded-full bg-black px-8 py-3 text-sm font-bold text-white hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl"
         >
           Buy Another
         </Link>
         <Link
           href="/account/orders"
-          className="rounded-full border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+          className="rounded-full border border-gray-200 bg-white px-8 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all"
         >
           View My Orders
         </Link>
