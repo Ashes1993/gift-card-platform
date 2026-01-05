@@ -17,7 +17,6 @@ export default function ProductCard({ product }) {
   const currencyCode = cart?.region?.currency_code || "usd";
 
   // 2. Get the correct price for this currency
-  // We use the first variant as the "display" price
   const displayVariant = product.variants?.[0];
   const priceAmount = getVariantPrice(displayVariant, currencyCode);
 
@@ -31,30 +30,38 @@ export default function ProductCard({ product }) {
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.1 }}
-      className="group relative flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-lg"
+      className="group relative flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:border-blue-200"
     >
       <Link href={linkPath}>
-        <div className="aspect-h-3 aspect-w-4 overflow-hidden rounded-t-lg bg-gray-200">
+        <div className="aspect-h-3 aspect-w-4 overflow-hidden bg-gray-100 relative">
           <img
             src={
               product.thumbnail ||
               "https://placehold.co/600x450/4f46e5/white?text=GiftCard"
             }
             alt={product.title}
-            className="h-full w-full object-cover object-center transition duration-500 group-hover:opacity-75"
+            className="h-full w-full object-cover object-center transition duration-500 group-hover:scale-105"
           />
+          {/* Overlay gradient */}
+          <div className="absolute inset-0 bg-linear-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
-        <div className="p-4">
-          <h3 className="text-lg font-medium text-gray-900 line-clamp-2">
+
+        <div className="p-4 text-right">
+          {" "}
+          {/* Ensure text-right for RTL */}
+          <h3 className="text-lg font-bold text-gray-900 line-clamp-2">
             <span aria-hidden="true" className="absolute inset-0" />
             {product.title}
           </h3>
-          <p className="mt-1 text-sm text-gray-500 line-clamp-2">
+          <p className="mt-1 text-sm text-gray-500 line-clamp-2 leading-relaxed">
             {product.subtitle || product.description?.substring(0, 50) + "..."}
           </p>
-          <p className="text-xl font-semibold text-blue-600 mt-2">
-            {formattedPrice}
-          </p>
+          <div className="mt-4 flex items-center justify-between">
+            <p className="text-lg font-black text-blue-600">{formattedPrice}</p>
+            <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-md">
+              تحویل آنی
+            </span>
+          </div>
         </div>
       </Link>
     </motion.div>

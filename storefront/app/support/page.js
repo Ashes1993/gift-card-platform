@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react"; // <--- CHANGED: Import from 'react', renamed
+import { useActionState } from "react";
 import { submitTicket } from "./actions";
 import { Loader2, Send, CheckCircle } from "lucide-react";
 import AccountLayout from "@/components/account/account-layout";
@@ -12,7 +12,6 @@ const initialState = {
 };
 
 export default function SupportPage() {
-  // CHANGED: useActionState gives us 'isPending' automatically as the 3rd argument
   const [state, formAction, isPending] = useActionState(
     submitTicket,
     initialState
@@ -25,25 +24,22 @@ export default function SupportPage() {
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 mb-6">
             <CheckCircle className="h-8 w-8 text-green-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900">
-            Ticket Submitted!
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-900">تیکت شما ثبت شد!</h2>
           <p className="mt-2 text-gray-500">
-            Your Ticket ID is{" "}
-            <span className="font-mono font-bold text-black">
+            شماره پیگیری تیکت شما:{" "}
+            <span className="font-mono font-bold text-black dir-ltr inline-block">
               {state.ticketId}
             </span>
-            .
           </p>
-          <p className="max-w-md mt-4 text-sm text-gray-500">
-            We have sent a confirmation email to you. Our team typically replies
-            within 24 hours.
+          <p className="max-w-md mt-4 text-sm text-gray-500 leading-relaxed">
+            یک ایمیل تایید برای شما ارسال شد. تیم پشتیبانی ما معمولاً در کمتر از
+            ۲۴ ساعت پاسخ می‌دهد.
           </p>
           <button
             onClick={() => window.location.reload()}
             className="mt-8 text-sm font-semibold text-black underline hover:text-gray-600"
           >
-            Send another message
+            ارسال پیام جدید
           </button>
         </div>
       </AccountLayout>
@@ -54,44 +50,40 @@ export default function SupportPage() {
     <AccountLayout activeTab="support">
       <div className="max-w-2xl mx-auto">
         <div className="mb-8 border-b border-gray-100 pb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Customer Support</h1>
+          <h1 className="text-2xl font-bold text-gray-900">پشتیبانی مشتریان</h1>
           <p className="mt-1 text-sm text-gray-500">
-            Have an issue with an order? We are here to help.
+            مشکلی در سفارش دارید؟ ما اینجا هستیم تا کمک کنیم.
           </p>
         </div>
 
-        {/* CHANGED: We pass 'formAction' directly to the form now */}
         <form action={formAction} className="space-y-6">
           {/* Row 1 */}
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div className="space-y-2">
-              <label
-                htmlFor="name"
-                className="text-sm font-medium text-gray-700"
-              >
-                Name
+              <label htmlFor="name" className="text-sm font-bold text-gray-700">
+                نام و نام خانوادگی
               </label>
               <input
                 type="text"
                 name="name"
                 required
-                placeholder="John Doe"
+                placeholder="مثال: علی محمدی"
                 className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-black focus:ring-1 focus:ring-black"
               />
             </div>
             <div className="space-y-2">
               <label
                 htmlFor="email"
-                className="text-sm font-medium text-gray-700"
+                className="text-sm font-bold text-gray-700"
               >
-                Email Address
+                آدرس ایمیل
               </label>
               <input
                 type="email"
                 name="email"
                 required
-                placeholder="john@example.com"
-                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-black focus:ring-1 focus:ring-black"
+                placeholder="ali@example.com"
+                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-black focus:ring-1 focus:ring-black text-right dir-ltr placeholder:text-right"
               />
             </div>
           </div>
@@ -101,32 +93,32 @@ export default function SupportPage() {
             <div className="space-y-2">
               <label
                 htmlFor="orderId"
-                className="text-sm font-medium text-gray-700"
+                className="text-sm font-bold text-gray-700"
               >
-                Order ID (Optional)
+                شماره سفارش (اختیاری)
               </label>
               <input
                 type="text"
                 name="orderId"
                 placeholder="#12345"
-                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-black focus:ring-1 focus:ring-black"
+                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-black focus:ring-1 focus:ring-black text-right dir-ltr placeholder:text-right"
               />
             </div>
             <div className="space-y-2">
               <label
                 htmlFor="subject"
-                className="text-sm font-medium text-gray-700"
+                className="text-sm font-bold text-gray-700"
               >
-                Subject
+                موضوع
               </label>
               <select
                 name="subject"
                 className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-black focus:ring-1 focus:ring-black"
               >
-                <option value="General Inquiry">General Inquiry</option>
-                <option value="Order Issue">Issue with an Order</option>
-                <option value="Refund Request">Refund Request</option>
-                <option value="Technical Support">Technical Support</option>
+                <option value="General Inquiry">سوال عمومی</option>
+                <option value="Order Issue">مشکل در سفارش</option>
+                <option value="Refund Request">درخواست عودت وجه</option>
+                <option value="Technical Support">مشکل فنی</option>
               </select>
             </div>
           </div>
@@ -135,22 +127,22 @@ export default function SupportPage() {
           <div className="space-y-2">
             <label
               htmlFor="message"
-              className="text-sm font-medium text-gray-700"
+              className="text-sm font-bold text-gray-700"
             >
-              How can we help?
+              پیام شما
             </label>
             <textarea
               name="message"
               required
               rows={5}
-              placeholder="Describe your issue in detail..."
+              placeholder="لطفاً مشکل خود را با جزئیات شرح دهید..."
               className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm outline-none transition-all focus:border-black focus:ring-1 focus:ring-black"
             ></textarea>
           </div>
 
           {/* Error Message */}
           {state.error && (
-            <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+            <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600 border border-red-100">
               {state.error}
             </div>
           )}
@@ -158,16 +150,17 @@ export default function SupportPage() {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={isPending} // CHANGED: Using the native hook state
+            disabled={isPending}
             className="flex w-full items-center justify-center rounded-lg bg-black px-6 py-3 text-sm font-bold text-white transition-all hover:bg-gray-800 disabled:bg-gray-400"
           >
             {isPending ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...
+                <Loader2 className="ml-2 h-4 w-4 animate-spin" /> در حال
+                ارسال...
               </>
             ) : (
               <>
-                Submit Ticket <Send className="ml-2 h-4 w-4" />
+                ارسال تیکت <Send className="mr-2 h-4 w-4" />
               </>
             )}
           </button>

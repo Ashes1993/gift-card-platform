@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { ProductActions } from "@/components/product/product-actions";
-import { ProductPriceDisplay } from "@/components/product/product-price-display"; // <--- Import New Component
+import { ProductPriceDisplay } from "@/components/product/product-price-display";
 
 // Utility function to fetch product data
 async function getProduct(handle) {
@@ -31,6 +31,7 @@ async function getProduct(handle) {
 }
 
 export default async function ProductPage({ params }) {
+  // Await params for Next.js 15
   const { id } = await params;
   const product = await getProduct(id);
 
@@ -40,41 +41,54 @@ export default async function ProductPage({ params }) {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-      <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-8 lg:items-start">
+      {/* RTL Grid: In RTL mode, the first column (Image) will be on the Right, Info on Left. */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-12 lg:items-start">
         {/* Product Image */}
         <div className="flex flex-col-reverse">
-          <div className="aspect-h-1 aspect-w-1 w-full">
+          <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-2xl border border-gray-100 bg-gray-50">
             <img
               src={
                 product.thumbnail || "https://dummyimage.com/600x600/eee/aaa"
               }
               alt={product.title}
-              className="h-full w-full object-cover object-center rounded-lg shadow-lg"
+              className="h-full w-full object-cover object-center"
             />
           </div>
         </div>
 
         {/* Product Info */}
-        <div className="mt-10 px-4 sm:mt-16 sm:px-0 lg:mt-0">
-          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
+        <div className="mt-10 px-4 sm:mt-16 sm:px-0 lg:mt-0 text-right">
+          <h1 className="text-3xl font-black tracking-tight text-gray-900">
             {product.title}
           </h1>
 
-          <div className="mt-3">
-            <h2 className="sr-only">Product information</h2>
-            {/* Replace static price with Client Component that knows the Cart Currency */}
+          <div className="mt-4">
+            <h2 className="sr-only">قیمت محصول</h2>
             <ProductPriceDisplay product={product} />
           </div>
 
-          <div className="mt-6">
-            <h3 className="sr-only">Description</h3>
-            <div className="space-y-6 text-base text-gray-700">
+          <div className="mt-8">
+            <h3 className="text-sm font-bold text-gray-900">توضیحات محصول</h3>
+            <div className="mt-4 space-y-6 text-base text-gray-600 leading-relaxed">
               <p>{product.description}</p>
             </div>
           </div>
 
+          {/* Features List (Static for now, implies trust) */}
+          <div className="mt-8 border-t border-gray-100 pt-8">
+            <ul className="space-y-3 text-sm text-gray-500">
+              <li className="flex items-center gap-2">
+                ✅ تحویل آنی و خودکار به ایمیل
+              </li>
+              <li className="flex items-center gap-2">
+                ✅ گارانتی مادام‌العمر و اورجینال
+              </li>
+              <li className="flex items-center gap-2">✅ پشتیبانی ۲۴ ساعته</li>
+            </ul>
+          </div>
+
           {/* Add to Cart Section */}
-          <div className="mt-10 border-t border-gray-200 pt-10">
+          <div className="mt-10 pt-6">
             <ProductActions product={product} />
           </div>
         </div>

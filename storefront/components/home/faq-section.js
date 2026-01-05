@@ -4,26 +4,27 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Minus } from "lucide-react";
 
+// 🛠️ Persian FAQs
 const FAQS = [
   {
-    question: "How instantly will I receive my code?",
+    question: "آیا تحویل کدها آنی است؟",
     answer:
-      "Immediately! Our system is automated. Once your payment is confirmed (usually instantly for cards/crypto), the code is sent to your email and displayed on your screen.",
+      "بله! سیستم ما کاملاً خودکار است. بلافاصله پس از پرداخت (چه با کارت بانکی و چه ارز دیجیتال)، کد گیفت کارت به ایمیل شما ارسال شده و همزمان در صفحه نمایش داده می‌شود.",
   },
   {
-    question: "Can I pay with Cryptocurrency?",
+    question: "آیا می‌توانم با ارز دیجیتال یا کارت شتاب پرداخت کنم؟",
     answer:
-      "Yes, we support Bitcoin, Ethereum, USDT (TRC20/ERC20), and more via NOWPayments. It's secure, private, and often cheaper than credit card fees.",
+      "بله، ما هم از درگاه پرداخت ریالی (کارت‌های عضو شتاب) و هم از درگاه امن ارز دیجیتال (تتر، بیت‌کوین، اتریوم) پشتیبانی می‌کنیم. انتخاب با شماست.",
   },
   {
-    question: "Do you need my ID or personal documents?",
+    question: "آیا برای خرید نیاز به احراز هویت است؟",
     answer:
-      "No. We value your privacy. For standard crypto purchases, no ID verification (KYC) is required. You can buy completely anonymously.",
+      "خیر. ما به حریم خصوصی شما احترام می‌گذاریم. برای خریدهای معمول نیازی به ارسال مدارک شناسایی نیست و می‌توانید به صورت ناشناس خرید کنید.",
   },
   {
-    question: "Is this global or region locked?",
+    question: "آیا گیفت کارت‌ها محدودیت ریجن (کشور) دارند؟",
     answer:
-      "We offer both Global and Region-Specific cards. Please check the product title (e.g., 'US Only' or 'Global') before purchasing to ensure it works in your country.",
+      "بله، اکثر گیفت کارت‌ها (مانند اپل و گوگل پلی) مخصوص یک کشور خاص هستند (مثلاً آمریکا). لطفاً قبل از خرید حتماً به عنوان محصول (مثلاً «ریجن آمریکا») دقت کنید تا با اکانت شما سازگار باشد.",
   },
 ];
 
@@ -34,11 +35,9 @@ export function FaqSection() {
     <section className="py-24 bg-gray-50">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900">
-            Frequently Asked Questions
-          </h2>
+          <h2 className="text-3xl font-bold text-gray-900">سوالات متداول</h2>
           <p className="mt-2 text-gray-500">
-            Everything you need to know about buying digital cards.
+            پاسخ به پرسش‌های رایج شما درباره خرید گیفت کارت
           </p>
         </div>
 
@@ -50,13 +49,14 @@ export function FaqSection() {
             >
               <button
                 onClick={() => setOpenIndex(openIndex === idx ? null : idx)}
-                className="flex w-full items-center justify-between p-5 text-left font-medium text-gray-900 transition hover:bg-gray-50"
+                // Changed text-left to text-right for RTL
+                className="flex w-full items-center justify-between p-5 text-right font-medium text-gray-900 transition hover:bg-gray-50"
               >
                 {faq.question}
                 {openIndex === idx ? (
-                  <Minus className="h-5 w-5 text-blue-600" />
+                  <Minus className="h-5 w-5 text-blue-600 shrink-0" />
                 ) : (
-                  <Plus className="h-5 w-5 text-gray-400" />
+                  <Plus className="h-5 w-5 text-gray-400 shrink-0" />
                 )}
               </button>
 
@@ -68,7 +68,7 @@ export function FaqSection() {
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <div className="px-5 pb-5 pt-0 text-gray-600 leading-relaxed">
+                    <div className="px-5 pb-5 pt-0 text-gray-600 leading-relaxed text-right">
                       {faq.answer}
                     </div>
                   </motion.div>

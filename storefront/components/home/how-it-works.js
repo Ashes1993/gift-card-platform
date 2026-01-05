@@ -3,21 +3,22 @@
 import { motion } from "framer-motion";
 import { Search, CreditCard, Mail } from "lucide-react";
 
+// 🛠️ Persian Steps Configuration
 const steps = [
   {
     icon: Search,
-    title: "1. Choose Your Card",
-    desc: "Browse hundreds of regional and global gift cards.",
+    title: "۱. انتخاب گیفت کارت", // 1. Choose Gift Card
+    desc: "از میان صدها گیفت کارت معتبر (اپل، گوگل پلی، و ...)، محصول مورد نظر خود را انتخاب کنید.",
   },
   {
     icon: CreditCard,
-    title: "2. Secure Payment",
-    desc: "Pay securely using Crypto, Credit Card, or PayPal.",
+    title: "۲. پرداخت امن", // 2. Secure Payment
+    desc: "هزینه را به صورت ریالی (کارت‌های شتاب) یا با ارز دیجیتال (تتر/بیت‌کوین) پرداخت کنید.",
   },
   {
     icon: Mail,
-    title: "3. Instant Delivery",
-    desc: "Receive your digital code in your email instantly.",
+    title: "۳. تحویل آنی", // 3. Instant Delivery
+    desc: "کد گیفت کارت بلافاصله پس از پرداخت به ایمیل شما ارسال و در پنل کاربری نمایش داده می‌شود.",
   },
 ];
 
@@ -27,15 +28,16 @@ export function HowItWorks() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-            How It Works
+            مراحل خرید
           </h2>
           <p className="mt-4 text-lg text-gray-600">
-            Get your gift card in 3 simple steps.
+            گیفت کارت خود را در ۳ مرحله ساده دریافت کنید.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
           {/* Connector Line (Desktop Only) */}
+          {/* In RTL, left/right positioning works the same for a centered line, connecting the rightmost to leftmost items */}
           <div className="hidden md:block absolute top-12 left-[16%] right-[16%] h-0.5 bg-gray-100 -z-10" />
 
           {steps.map((step, idx) => (
@@ -53,7 +55,9 @@ export function HowItWorks() {
               <h3 className="text-xl font-bold text-gray-900 mb-2">
                 {step.title}
               </h3>
-              <p className="text-gray-500 max-w-xs">{step.desc}</p>
+              <p className="text-gray-500 max-w-xs leading-relaxed">
+                {step.desc}
+              </p>
             </motion.div>
           ))}
         </div>

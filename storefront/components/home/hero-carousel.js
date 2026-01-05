@@ -3,41 +3,41 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react"; // Switched ArrowRight to ArrowLeft
 
-// 🛠️ CUSTOMIZE HERE: Add your own hero images and text
+// 🛠️ Persian Slides Configuration
 const SLIDES = [
   {
     id: 1,
     image:
       "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070&auto=format&fit=crop", // Gaming Setup
-    title: "Level Up Your Game",
-    highlight: "Instant Delivery",
+    title: "هیجان بازی بدون توقف",
+    highlight: "تحویل آنی",
     description:
-      "Get Steam, PlayStation, and Xbox cards delivered straight to your inbox in seconds.",
-    cta: "Shop Gaming",
+      "گیفت کارت‌های استیم، پلی‌استیشن و ایکس‌باکس را در لحظه بخرید و بلافاصله کد را دریافت کنید.",
+    cta: "خرید محصولات گیمینگ",
     link: "/store?category=gaming",
   },
   {
     id: 2,
     image:
       "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=2070&auto=format&fit=crop", // Shopping Bags
-    title: "The Perfect Gift",
-    highlight: "For Everyone",
+    title: "هدیه‌ای برای تمام سلیقه‌ها",
+    highlight: "انتخابی هوشمندانه",
     description:
-      "From Amazon to Zalando, find the perfect gift card for friends and family.",
-    cta: "Browse All",
+      "از آمازون تا اسپاتیفای، بهترین هدیه دیجیتال را برای دوستان و خانواده خود پیدا کنید.",
+    cta: "مشاهده همه محصولات",
     link: "/store",
   },
   {
     id: 3,
     image:
       "https://images.unsplash.com/photo-1512314889357-e157c22f938d?q=80&w=2071&auto=format&fit=crop", // Crypto / Tech
-    title: "Pay with Crypto",
-    highlight: "Secure & Private",
+    title: "پرداخت امن با ارز دیجیتال",
+    highlight: "حریم خصوصی کامل",
     description:
-      "Use Bitcoin, USDT, or Ethereum to buy everyday essentials securely.",
-    cta: "Start Buying",
+      "بدون نیاز به کارت بانکی، با بیت‌کوین، تتر و اتریوم خریدهای خود را به صورت ناشناس انجام دهید.",
+    cta: "شروع خرید",
     link: "/store",
   },
 ];
@@ -49,7 +49,7 @@ export function HeroCarousel() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrent((prev) => (prev === SLIDES.length - 1 ? 0 : prev + 1));
-    }, 5000); // Change slide every 5 seconds
+    }, 5000);
     return () => clearInterval(timer);
   }, []);
 
@@ -90,34 +90,39 @@ export function HeroCarousel() {
           <span className="mb-4 inline-block rounded-full bg-blue-600/20 px-4 py-1.5 text-sm font-semibold text-blue-400 backdrop-blur-md border border-blue-500/30">
             {SLIDES[current].highlight}
           </span>
-          <h1 className="mb-6 text-5xl font-extrabold tracking-tight md:text-7xl leading-tight">
+          <h1 className="mb-6 text-5xl font-extrabold tracking-tight md:text-7xl leading-tight font-sans">
             {SLIDES[current].title}
           </h1>
-          <p className="mb-8 text-xl text-gray-200">
+          <p className="mb-8 text-xl text-gray-200 leading-relaxed">
             {SLIDES[current].description}
           </p>
           <Link
             href={SLIDES[current].link}
             className="inline-flex items-center rounded-full bg-blue-600 px-8 py-4 text-lg font-semibold text-white transition-all hover:bg-blue-700 hover:scale-105 shadow-lg shadow-blue-600/40"
           >
-            {SLIDES[current].cta} <ArrowRight className="ml-2 h-5 w-5" />
+            {SLIDES[current].cta}
+            {/* Swapped ArrowRight for ArrowLeft for RTL "Forward" motion */}
+            <ArrowLeft className="mr-2 h-5 w-5" />
           </Link>
         </motion.div>
       </div>
 
       {/* Navigation Controls */}
-      <div className="absolute bottom-8 right-8 flex gap-4 z-20">
+      {/* Moved from right-8 to left-8 for RTL mirroring */}
+      <div className="absolute bottom-8 left-8 flex gap-4 z-20">
         <button
           onClick={prevSlide}
           className="rounded-full bg-white/10 p-3 hover:bg-white/20 backdrop-blur-md transition border border-white/20"
         >
-          <ChevronLeft className="h-6 w-6 text-white" />
+          {/* In RTL, 'Previous' is usually the Right Arrow */}
+          <ChevronRight className="h-6 w-6 text-white" />
         </button>
         <button
           onClick={nextSlide}
           className="rounded-full bg-white/10 p-3 hover:bg-white/20 backdrop-blur-md transition border border-white/20"
         >
-          <ChevronRight className="h-6 w-6 text-white" />
+          {/* In RTL, 'Next' is usually the Left Arrow */}
+          <ChevronLeft className="h-6 w-6 text-white" />
         </button>
       </div>
     </section>

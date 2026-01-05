@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAccount } from "@/context/account-context";
 import { useCart } from "@/context/cart-context";
-import { ShoppingBag, User, Menu, X, Loader2 } from "lucide-react";
+import { ShoppingBag, User, Menu, X } from "lucide-react";
 import { useState } from "react";
 
 export function Navbar() {
@@ -17,18 +17,18 @@ export function Navbar() {
   const itemCount =
     cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
 
-  // Navigation Links
-  // UPDATE: Added 'prefetch: false' to Store to fix the caching issue
+  // Navigation Links (Translated)
+  // prefetch: false for the Store to avoid caching issues
   const navLinks = [
-    { name: "Store", href: "/store", prefetch: false },
-    { name: "Support", href: "/support" },
-    { name: "About", href: "/about" },
+    { name: "فروشگاه", href: "/store", prefetch: false },
+    { name: "پشتیبانی", href: "/support" },
+    { name: "درباره ما", href: "/about" },
   ];
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/80 backdrop-blur-xl transition-all">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-        {/* 1. Left: Logo */}
+        {/* 1. Right Side (In RTL): Logo & Mobile Toggle */}
         <div className="flex items-center gap-2">
           {/* Mobile Menu Toggle */}
           <button
@@ -40,9 +40,11 @@ export function Navbar() {
 
           <Link
             href="/"
-            className="text-xl font-black tracking-tighter text-black transition-opacity hover:opacity-80"
+            className="text-xl font-black tracking-tighter text-black transition-opacity hover:opacity-80 flex items-center gap-1"
           >
-            GIFT<span className="text-blue-600">CARD</span>.IO
+            <span>گیفت</span>
+            <span className="text-blue-600">کارت</span>
+            <span className="text-gray-400 text-sm pt-1">.IO</span>
           </Link>
         </div>
 
@@ -54,11 +56,10 @@ export function Navbar() {
               <Link
                 key={link.name}
                 href={link.href}
-                // FIX: Apply prefetch setting (false for Store)
                 prefetch={link.prefetch}
                 className={`text-sm font-medium transition-colors duration-200 ${
                   isActive
-                    ? "text-black font-semibold"
+                    ? "text-black font-bold"
                     : "text-gray-500 hover:text-black"
                 }`}
               >
@@ -68,11 +69,10 @@ export function Navbar() {
           })}
         </div>
 
-        {/* 3. Right: Actions (Auth + Cart) */}
+        {/* 3. Left Side (In RTL): Actions (Auth + Cart) */}
         <div className="flex items-center gap-4">
           {/* Auth State Handling */}
           {isLoading ? (
-            // Skeleton Loader (Prevents flickering)
             <div className="flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1.5">
               <div className="h-4 w-4 animate-pulse rounded-full bg-gray-300" />
               <div className="h-3 w-16 animate-pulse rounded bg-gray-300" />
@@ -85,10 +85,11 @@ export function Navbar() {
             >
               <User
                 size={16}
+                // Changed text-gray-400 to match design, margins handled by gap-2
                 className="text-gray-400 transition-colors group-hover:text-black"
               />
               <span className="hidden sm:inline">
-                {customer.first_name || "Account"}
+                {customer.first_name || "حساب کاربری"}
               </span>
             </Link>
           ) : (
@@ -97,11 +98,11 @@ export function Navbar() {
               href="/account/login"
               className="text-sm font-medium text-gray-600 hover:text-black transition-colors"
             >
-              Sign In
+              ورود / ثبت نام
             </Link>
           )}
 
-          {/* Cart Button (Animated) */}
+          {/* Cart Button */}
           <button
             onClick={() => setIsOpen(true)}
             className="group relative flex items-center justify-center rounded-full bg-black p-2.5 text-white transition-transform hover:scale-105 hover:bg-gray-900 active:scale-95"
@@ -117,7 +118,7 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* 4. Mobile Menu Dropdown (Clean Animation) */}
+      {/* 4. Mobile Menu Dropdown */}
       {isMobileMenuOpen && (
         <div className="border-t border-gray-100 bg-white lg:hidden animate-in slide-in-from-top-2">
           <div className="space-y-1 px-4 py-4">
@@ -125,7 +126,6 @@ export function Navbar() {
               <Link
                 key={link.name}
                 href={link.href}
-                // FIX: Apply prefetch setting here too
                 prefetch={link.prefetch}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={`block rounded-lg px-4 py-3 text-base font-medium transition-colors ${

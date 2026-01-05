@@ -37,8 +37,8 @@ export function TrustedPartners() {
   return (
     <section className="py-16 bg-white border-t border-gray-100">
       <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
-        <p className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-8">
-          Official Retailer For
+        <p className="text-sm font-bold text-gray-400 mb-8">
+          عرضه کننده محصولات برندهای معتبر
         </p>
 
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-8 items-center opacity-60">

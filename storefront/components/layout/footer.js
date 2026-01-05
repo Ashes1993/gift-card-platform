@@ -1,5 +1,3 @@
-// storefront/components/layout/footer.jsx
-
 import Link from "next/link";
 import { Mail, Headset, BookOpen } from "lucide-react";
 
@@ -12,43 +10,44 @@ export function Footer() {
           <div>
             <Link
               href="/"
-              className="text-2xl font-black tracking-tighter text-black"
+              className="text-2xl font-black tracking-tighter text-black flex items-center gap-1"
             >
-              GIFT<span className="text-blue-600">CARD</span>.IO
+              <span>گیفت</span>
+              <span className="text-blue-600">کارت</span>
+              <span className="text-gray-400 text-sm pt-1">.IO</span>
             </Link>
-            <p className="mt-4 text-sm text-gray-500">
-              Your fastest source for secure digital gift cards.
+            <p className="mt-4 text-sm text-gray-500 leading-relaxed">
+              سریع‌ترین مرجع خرید امن گیفت کارت‌های دیجیتال گوگل پلی، اپل و
+              اسپاتیفای در ایران.
             </p>
           </div>
 
           {/* Column 2: Quick Links */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 tracking-wider uppercase mb-4">
-              Shop
-            </h3>
+            <h3 className="text-sm font-bold text-gray-900 mb-4">فروشگاه</h3>
             <ul className="space-y-3">
               <li>
                 <Link
                   href="/store"
                   className="text-sm text-gray-600 hover:text-blue-600 transition"
                 >
-                  All Products
+                  همه محصولات
                 </Link>
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="/store?sort=popular"
                   className="text-sm text-gray-600 hover:text-blue-600 transition"
                 >
-                  Popular Brands
+                  برندهای محبوب
                 </Link>
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="/store?sort=newest"
                   className="text-sm text-gray-600 hover:text-blue-600 transition"
                 >
-                  New Arrivals
+                  جدیدترین‌ها
                 </Link>
               </li>
             </ul>
@@ -56,35 +55,33 @@ export function Footer() {
 
           {/* Column 3: Customer Service */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 tracking-wider uppercase mb-4">
-              Support
-            </h3>
+            <h3 className="text-sm font-bold text-gray-900 mb-4">پشتیبانی</h3>
             <ul className="space-y-3">
-              <li className="flex items-center space-x-2">
+              <li className="flex items-center gap-2">
                 <Headset className="h-4 w-4 text-gray-400" />
                 <Link
                   href="/contact"
                   className="text-sm text-gray-600 hover:text-blue-600 transition"
                 >
-                  Contact Us
+                  تماس با ما
                 </Link>
               </li>
-              <li className="flex items-center space-x-2">
+              <li className="flex items-center gap-2">
                 <BookOpen className="h-4 w-4 text-gray-400" />
                 <Link
-                  href="#"
+                  href="/faq"
                   className="text-sm text-gray-600 hover:text-blue-600 transition"
                 >
-                  FAQ / Docs
+                  سوالات متداول / راهنما
                 </Link>
               </li>
-              <li className="flex items-center space-x-2">
+              <li className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-gray-400" />
                 <Link
-                  href="#"
+                  href="/privacy"
                   className="text-sm text-gray-600 hover:text-blue-600 transition"
                 >
-                  Privacy Policy
+                  حریم خصوصی
                 </Link>
               </li>
             </ul>
@@ -92,8 +89,8 @@ export function Footer() {
 
           {/* Column 4: Account */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 tracking-wider uppercase mb-4">
-              Account
+            <h3 className="text-sm font-bold text-gray-900 mb-4">
+              حساب کاربری
             </h3>
             <ul className="space-y-3">
               <li>
@@ -101,7 +98,7 @@ export function Footer() {
                   href="/account/profile"
                   className="text-sm text-gray-600 hover:text-blue-600 transition"
                 >
-                  My Profile
+                  پروفایل من
                 </Link>
               </li>
               <li>
@@ -109,7 +106,7 @@ export function Footer() {
                   href="/account/orders"
                   className="text-sm text-gray-600 hover:text-blue-600 transition"
                 >
-                  Track Orders
+                  پیگیری سفارش
                 </Link>
               </li>
               <li>
@@ -117,7 +114,7 @@ export function Footer() {
                   href="/account/login"
                   className="text-sm text-gray-600 hover:text-blue-600 transition"
                 >
-                  Sign In
+                  ورود / ثبت نام
                 </Link>
               </li>
             </ul>
@@ -125,9 +122,9 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-12 pt-8 border-t border-gray-200 flex justify-between items-center">
+        <div className="mt-12 pt-8 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-xs text-gray-400">
-            &copy; {new Date().getFullYear()} GIFTCARD.IO. All rights reserved.
+            &copy; {new Date().getFullYear()} گیفت کارت. تمامی حقوق محفوظ است.
           </p>
         </div>
       </div>

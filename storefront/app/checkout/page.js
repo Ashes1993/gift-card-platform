@@ -11,6 +11,8 @@ import {
   AlertCircle,
   CreditCard,
   Bitcoin,
+  ArrowRight,
+  ShoppingBag,
 } from "lucide-react";
 import { placeOrder } from "./actions";
 
@@ -37,10 +39,18 @@ export default function CheckoutPage() {
   if (!cart || !cart.items?.length) {
     if (success) return <SuccessView orderId={orderId} />;
     return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center space-y-4">
-        <h2 className="text-2xl font-bold">Your cart is empty</h2>
-        <Link href="/" className="text-blue-600 hover:underline">
-          Go to Store
+      <div className="flex min-h-[60vh] flex-col items-center justify-center space-y-4 text-center">
+        <div className="h-20 w-20 bg-gray-50 rounded-full flex items-center justify-center mb-2">
+          <ShoppingBag className="h-8 w-8 text-gray-300" />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900">
+          سبد خرید شما خالی است
+        </h2>
+        <Link
+          href="/store"
+          className="text-blue-600 hover:underline font-medium"
+        >
+          بازگشت به فروشگاه
         </Link>
       </div>
     );
@@ -68,7 +78,7 @@ export default function CheckoutPage() {
       localStorage.removeItem("cart_id");
     } catch (err) {
       console.error(err);
-      setError(err.message || "Something went wrong. Please try again.");
+      setError(err.message || "خطایی رخ داد. لطفا مجددا تلاش کنید.");
     } finally {
       setLoading(false);
     }
@@ -80,7 +90,7 @@ export default function CheckoutPage() {
 
     // Validation
     if (!email && !customer) {
-      setError("Please enter your email address first.");
+      setError("لطفاً ابتدا ایمیل خود را وارد کنید.");
       return;
     }
 
@@ -89,7 +99,6 @@ export default function CheckoutPage() {
 
     try {
       // Step A: Ensure Email is attached to Cart (Crucial for Guest Checkout)
-      // We manually update the cart here so the backend has the email for the invoice
       if (!customer) {
         await fetch(`${BASE_URL}/store/carts/${cart.id}`, {
           method: "POST",
@@ -114,32 +123,32 @@ export default function CheckoutPage() {
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        throw new Error(data.message || "Failed to initialize crypto payment");
+        throw new Error(data.message || "خطا در ایجاد درگاه پرداخت.");
       }
 
       // Step C: Redirect to NOWPayments
       window.location.href = data.payment_url;
     } catch (err) {
       console.error(err);
-      setError(err.message || "Crypto payment failed.");
+      setError(err.message || "پرداخت ناموفق بود.");
       setCryptoLoading(false);
     }
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
-      <h1 className="mb-8 text-3xl font-extrabold text-gray-900">Checkout</h1>
+    <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
+      <h1 className="mb-8 text-3xl font-extrabold text-gray-900">تسویه حساب</h1>
 
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-        {/* LEFT: Form */}
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:gap-12">
+        {/* LEFT: Form (In RTL layout this appears on Right, which is correct) */}
         <div>
           <form className="space-y-6">
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-bold text-gray-700 mb-2"
               >
-                Contact Email
+                ایمیل دریافت کد
               </label>
               <div className="mt-1">
                 <input
@@ -149,80 +158,86 @@ export default function CheckoutPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={!!customer}
-                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 border"
+                  // dir-ltr ensures email looks correct (english) while keeping placeholder right-aligned if needed
+                  className="block w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 outline-none text-left dir-ltr"
                   placeholder="you@example.com"
                 />
               </div>
               {!customer && (
                 <p className="mt-2 text-xs text-gray-500">
-                  We'll send your gift card code to this email.
+                  کد گیفت کارت به این آدرس ایمیل ارسال خواهد شد.
                 </p>
               )}
             </div>
 
             {error && (
-              <div className="rounded-md bg-red-50 p-4">
+              <div className="rounded-lg bg-red-50 p-4 border border-red-100">
                 <div className="flex">
-                  <AlertCircle className="h-5 w-5 text-red-400" />
-                  <p className="ml-3 text-sm text-red-700">{error}</p>
+                  <AlertCircle className="h-5 w-5 text-red-600" />
+                  <p className="mr-3 text-sm text-red-700">{error}</p>
                 </div>
               </div>
             )}
 
-            <div className="space-y-3 pt-4">
+            <div className="space-y-4 pt-4">
               {/* Button 1: Crypto (Primary) */}
               <button
                 onClick={handleCryptoPayment}
                 disabled={loading || cryptoLoading}
-                className="flex w-full items-center justify-center rounded-lg bg-green-600 px-6 py-4 text-base font-bold text-white shadow-md hover:bg-green-700 hover:shadow-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                className="flex w-full items-center justify-center rounded-xl bg-green-600 px-6 py-4 text-base font-bold text-white shadow-md hover:bg-green-700 hover:shadow-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {cryptoLoading ? (
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  <Loader2 className="ml-2 h-5 w-5 animate-spin" />
                 ) : (
-                  <Bitcoin className="mr-2 h-5 w-5" />
+                  <Bitcoin className="ml-2 h-5 w-5" />
                 )}
-                Pay with Crypto
+                پرداخت با ارز دیجیتال
               </button>
+              <p className="text-xs text-center text-gray-400">
+                پشتیبانی از تتر (USDT)، بیت‌کوین، اتریوم و ...
+              </p>
 
               {/* Divider */}
               <div className="relative flex py-2 items-center">
-                <div className="flex-grow border-t border-gray-200"></div>
-                <span className="flex-shrink-0 mx-4 text-gray-400 text-xs uppercase tracking-wider">
-                  Or pay with card
+                <div className="grow border-t border-gray-200"></div>
+                <span className="shrink-0 mx-4 text-gray-400 text-xs font-medium uppercase tracking-wider">
+                  یا پرداخت ریالی (تست)
                 </span>
-                <div className="flex-grow border-t border-gray-200"></div>
+                <div className="grow border-t border-gray-200"></div>
               </div>
 
               {/* Button 2: Credit Card (Test) */}
               <button
                 onClick={handlePlaceOrder}
                 disabled={loading || cryptoLoading}
-                className="flex w-full items-center justify-center rounded-lg border-2 border-gray-200 bg-white px-6 py-3 text-base font-bold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                className="flex w-full items-center justify-center rounded-xl border-2 border-gray-200 bg-white px-6 py-3 text-base font-bold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {loading ? (
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  <Loader2 className="ml-2 h-5 w-5 animate-spin" />
                 ) : (
-                  <CreditCard className="mr-2 h-5 w-5" />
+                  <CreditCard className="ml-2 h-5 w-5" />
                 )}
-                Credit Card (Test)
+                پرداخت تستی (شبیه‌ساز)
               </button>
             </div>
           </form>
         </div>
 
         {/* RIGHT: Order Summary */}
-        <div className="rounded-lg bg-gray-50 p-6 h-fit sticky top-24">
-          <h2 className="text-lg font-medium text-gray-900">Order Summary</h2>
+        <div className="rounded-2xl bg-gray-50 p-6 h-fit sticky top-24 border border-gray-100">
+          <h2 className="text-lg font-bold text-gray-900">خلاصه سفارش</h2>
           <ul className="mt-6 divide-y divide-gray-200">
             {cart.items.map((item) => (
               <li key={item.id} className="flex py-4">
-                <div className="flex-1">
-                  <h3 className="text-sm font-medium text-gray-900">
+                <div className="flex-1 ml-4">
+                  <h3 className="text-sm font-bold text-gray-900">
                     {item.title}
                   </h3>
-                  <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    تعداد: {item.quantity}
+                  </p>
                 </div>
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-sm font-bold text-gray-900 whitespace-nowrap">
                   {formatPrice(item.unit_price, cart.currency_code)}
                 </p>
               </li>
@@ -230,8 +245,8 @@ export default function CheckoutPage() {
           </ul>
           <div className="mt-6 border-t border-gray-200 pt-6">
             <div className="flex items-center justify-between">
-              <p className="text-base font-medium text-gray-900">Total</p>
-              <p className="text-xl font-bold text-gray-900">
+              <p className="text-base font-medium text-gray-900">جمع کل</p>
+              <p className="text-xl font-black text-blue-600">
                 {cart.total
                   ? formatPrice(cart.total, cart.currency_code)
                   : formatPrice(
@@ -244,6 +259,11 @@ export default function CheckoutPage() {
               </p>
             </div>
           </div>
+
+          {/* Trust Badges (Visual Reassurance) */}
+          <div className="mt-8 grid grid-cols-3 gap-2 opacity-60 grayscale">
+            {/* You can add icons of banks or crypto here later */}
+          </div>
         </div>
       </div>
     </div>
@@ -253,31 +273,34 @@ export default function CheckoutPage() {
 function SuccessView({ orderId }) {
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center text-center px-4">
-      <div className="rounded-full bg-green-100 p-4 mb-4">
+      <div className="rounded-full bg-green-100 p-4 mb-6 shadow-sm">
         <CheckCircle className="h-12 w-12 text-green-600" />
       </div>
       <h2 className="text-3xl font-extrabold text-gray-900">
-        Order Confirmed!
+        سفارش با موفقیت ثبت شد!
       </h2>
-      <p className="mt-2 text-lg text-gray-600">
-        Thank you for your purchase. Your order ID is{" "}
-        <span className="font-mono font-bold text-black">#{orderId}</span>.
+      <p className="mt-4 text-lg text-gray-600">
+        از خرید شما سپاسگزاریم. شماره سفارش شما:{" "}
+        <span className="font-mono font-bold text-black dir-ltr inline-block bg-gray-100 px-2 py-1 rounded">
+          #{orderId}
+        </span>
       </p>
-      <p className="text-gray-500 mt-2 max-w-md mx-auto">
-        Your digital gift card codes have been sent to your email address.
+      <p className="text-gray-500 mt-2 max-w-md mx-auto leading-relaxed">
+        کد گیفت کارت‌ها به آدرس ایمیل شما ارسال شد. همچنین می‌توانید آن‌ها را در
+        بخش سفارش‌های من مشاهده کنید.
       </p>
-      <div className="mt-8 flex gap-4">
+      <div className="mt-10 flex flex-col sm:flex-row gap-4">
         <Link
           href="/"
           className="rounded-full bg-black px-8 py-3 text-sm font-bold text-white hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl"
         >
-          Buy Another
+          خرید مجدد
         </Link>
         <Link
           href="/account/orders"
           className="rounded-full border border-gray-200 bg-white px-8 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all"
         >
-          View My Orders
+          مشاهده سفارش‌های من
         </Link>
       </div>
     </div>
