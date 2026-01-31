@@ -1,95 +1,169 @@
 import { notFound } from "next/navigation";
-import { ProductActions } from "@/components/product/product-actions";
-import { ProductPriceDisplay } from "@/components/product/product-price-display";
+import Image from "next/image";
+import { ShieldCheck, Star, CheckCircle2 } from "lucide-react"; // Removed Zap icon
+import VariantSelector from "@/components/product/variant-selector";
+import ProductPurchaseCard from "@/components/product/product-purchase-card";
 
-// Utility function to fetch product data
-async function getProduct(handle) {
+// Fetch logic
+async function fetchProduct(handle) {
   const baseUrl =
-    process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://127.0.0.1:9000";
+    process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
   const apiKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
 
-  const url = new URL(`${baseUrl}/store/products`);
-  url.searchParams.append("handle", handle);
-  // Important: Fetch prices to allow filtering later
-  url.searchParams.append(
-    "fields",
-    "*variants.prices,*title,*thumbnail,*description,*handle"
-  );
-
   try {
-    const res = await fetch(url.toString(), {
-      headers: { "x-publishable-api-key": apiKey },
-      next: { revalidate: 0 },
-    });
-
-    if (!res.ok) return null;
+    const res = await fetch(
+      `${baseUrl}/store/products?handle=${handle}&fields=*variants.prices,*title,*thumbnail,*description,*handle`,
+      {
+        headers: { "x-publishable-api-key": apiKey },
+        next: { revalidate: 0 },
+      },
+    );
     const data = await res.json();
-    return data.products?.[0] || null;
-  } catch (error) {
+    return data.products?.[0];
+  } catch (e) {
     return null;
   }
 }
 
-export default async function ProductPage({ params }) {
-  // Await params for Next.js 15
-  const { id } = await params;
-  const product = await getProduct(id);
+// --- Dynamic Metadata ---
+export async function generateMetadata({ params }) {
+  const { id: handle } = await params;
+  const product = await fetchProduct(handle);
 
   if (!product) {
-    notFound();
+    return {
+      title: "محصول یافت نشد | فروشگاه گیفت کارت",
+      description: "محصول مورد نظر شما وجود ندارد.",
+    };
   }
 
+  return {
+    title: `${product.title} | فروشگاه گیفت کارت`,
+    description: product.description
+      ? product.description.slice(0, 160)
+      : `خرید آنلاین ${product.title} با تحویل فوری.`,
+    openGraph: {
+      title: product.title,
+      description: product.description,
+      images: product.thumbnail ? [product.thumbnail] : [],
+      type: "website",
+    },
+  };
+}
+
+export default async function ProductPage({ params, searchParams }) {
+  const { id: handle } = await params;
+  const query = await searchParams;
+
+  const product = await fetchProduct(handle);
+
+  if (!product) notFound();
+
+  // Determine Active Variant
+  const sortedVariants = product.variants.sort(
+    (a, b) => (a.prices?.[0]?.amount || 0) - (b.prices?.[0]?.amount || 0),
+  );
+
+  const activeVariantId = query.variant || sortedVariants[0]?.id;
+  const activeVariant =
+    sortedVariants.find((v) => v.id === activeVariantId) || sortedVariants[0];
+
+  const isLocalImage =
+    product.thumbnail?.includes("localhost") ||
+    product.thumbnail?.includes("127.0.0.1");
+
   return (
-    <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-      {/* RTL Grid: In RTL mode, the first column (Image) will be on the Right, Info on Left. */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-12 lg:items-start">
-        {/* Product Image */}
-        <div className="flex flex-col-reverse">
-          <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-2xl border border-gray-100 bg-gray-50">
-            <img
-              src={
-                product.thumbnail || "https://dummyimage.com/600x600/eee/aaa"
-              }
-              alt={product.title}
-              className="h-full w-full object-cover object-center"
-            />
-          </div>
-        </div>
+    <div className="min-h-screen bg-[#fafafa]">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:py-10 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+          {/* --- LEFT: Product Visuals (lg:col-span-5) --- */}
+          <div className="lg:col-span-5 lg:sticky lg:top-24 h-fit">
+            {/* OPTIMIZATION 1: Responsive Aspect Ratio 
+                - Mobile: aspect-[4/3] (Shorter, fits screen better)
+                - Desktop (lg): aspect-square (Big and detailed)
+            */}
+            <div className="relative aspect-[4/3] lg:aspect-square w-full overflow-hidden rounded-3xl bg-white border border-gray-100 shadow-sm p-8 sm:p-12 flex items-center justify-center">
+              {product.thumbnail && (
+                <Image
+                  src={product.thumbnail}
+                  alt={product.title}
+                  fill
+                  unoptimized={isLocalImage}
+                  // OPTIMIZATION: Reduced padding on mobile for larger image appearance
+                  className="object-contain p-4 sm:p-8 transition-transform duration-700 hover:scale-105"
+                  priority
+                />
+              )}
 
-        {/* Product Info */}
-        <div className="mt-10 px-4 sm:mt-16 sm:px-0 lg:mt-0 text-right">
-          <h1 className="text-3xl font-black tracking-tight text-gray-900">
-            {product.title}
-          </h1>
+              {/* OPTIMIZATION 2: Removed the "Instant Delivery" (Zap) Badge */}
+            </div>
 
-          <div className="mt-4">
-            <h2 className="sr-only">قیمت محصول</h2>
-            <ProductPriceDisplay product={product} />
-          </div>
-
-          <div className="mt-8">
-            <h3 className="text-sm font-bold text-gray-900">توضیحات محصول</h3>
-            <div className="mt-4 space-y-6 text-base text-gray-600 leading-relaxed">
-              <p>{product.description}</p>
+            {/* Trust Badges */}
+            <div className="mt-4 sm:mt-6 grid grid-cols-3 gap-3 sm:gap-4">
+              <div className="flex flex-col items-center justify-center p-3 sm:p-4 bg-white rounded-2xl border border-gray-100 text-center gap-2 shadow-sm">
+                <ShieldCheck className="text-blue-600" size={20} />
+                <span className="text-[10px] sm:text-xs font-bold text-gray-600">
+                  گارانتی مادام‌العمر
+                </span>
+              </div>
+              <div className="flex flex-col items-center justify-center p-3 sm:p-4 bg-white rounded-2xl border border-gray-100 text-center gap-2 shadow-sm">
+                <Star
+                  className="text-yellow-500"
+                  size={20}
+                  fill="currentColor"
+                />
+                <span className="text-[10px] sm:text-xs font-bold text-gray-600">
+                  اورجینال و قانونی
+                </span>
+              </div>
+              <div className="flex flex-col items-center justify-center p-3 sm:p-4 bg-white rounded-2xl border border-gray-100 text-center gap-2 shadow-sm">
+                <CheckCircle2 className="text-green-600" size={20} />
+                <span className="text-[10px] sm:text-xs font-bold text-gray-600">
+                  پشتیبانی ۲۴/۷
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Features List (Static for now, implies trust) */}
-          <div className="mt-8 border-t border-gray-100 pt-8">
-            <ul className="space-y-3 text-sm text-gray-500">
-              <li className="flex items-center gap-2">
-                ✅ تحویل آنی و خودکار به ایمیل
-              </li>
-              <li className="flex items-center gap-2">
-                ✅ گارانتی مادام‌العمر و اورجینال
-              </li>
-              <li className="flex items-center gap-2">✅ پشتیبانی ۲۴ ساعته</li>
-            </ul>
-          </div>
+          {/* --- RIGHT: Details & Actions (lg:col-span-7) --- */}
+          <div className="lg:col-span-7 flex flex-col gap-6 sm:gap-8">
+            {/* Header */}
+            <div className="border-b border-gray-100 pb-4 sm:pb-6">
+              <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-gray-900 mb-2">
+                {product.title}
+              </h1>
+              <p className="text-base sm:text-lg text-gray-500 font-medium">
+                {activeVariant ? `${activeVariant.title}` : "انتخاب کنید"}
+              </p>
+            </div>
 
-          {/* Add to Cart Section */}
-          <div className="mt-10 pt-6">
-            <ProductActions product={product} />
+            {/* Selector */}
+            <div>
+              <label className="block text-sm font-bold text-gray-900 mb-3">
+                مبلغ مورد نظر را انتخاب کنید:
+              </label>
+              <VariantSelector
+                variants={sortedVariants}
+                selectedVariantId={activeVariantId}
+              />
+            </div>
+
+            {/* Dynamic Purchase Card */}
+            <ProductPurchaseCard
+              product={product}
+              activeVariant={activeVariant}
+            />
+
+            {/* Description */}
+            <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-100 shadow-sm">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <div className="w-1 h-6 bg-black rounded-full" />
+                توضیحات محصول
+              </h3>
+              <div className="prose prose-sm max-w-none text-gray-600 leading-loose whitespace-pre-line text-justify">
+                {product.description}
+              </div>
+            </div>
           </div>
         </div>
       </div>
