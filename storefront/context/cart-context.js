@@ -9,21 +9,19 @@ export function CartProvider({ children }) {
   const [cart, setCart] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
 
+  // Helper to force-fetch latest cart state
+  async function refreshCart(cartId) {
+    if (!cartId) return;
+    const { cart: freshCart } = await medusa.carts.retrieve(cartId);
+    setCart(freshCart);
+  }
+
   // 1. Load Cart on Startup
   useEffect(() => {
     async function loadCart() {
       const cartId = localStorage.getItem("cart_id");
-
       if (cartId) {
-        const { cart } = await medusa.carts
-          .retrieve(cartId)
-          .catch(() => ({ cart: null }));
-
-        if (cart && !cart.completed_at) {
-          setCart(cart);
-        } else {
-          await createNewCart();
-        }
+        await refreshCart(cartId).catch(() => createNewCart());
       } else {
         await createNewCart();
       }
@@ -39,91 +37,61 @@ export function CartProvider({ children }) {
     return cart;
   }
 
-  // 3. Add Item Function (Self-Healing)
-  async function addToCart(variantId) {
+  // 3. Add Item
+  async function addToCart(variantId, quantity = 1) {
     let activeCartId = cart?.id;
-
     if (!activeCartId) {
       const newCart = await createNewCart();
       activeCartId = newCart.id;
     }
-
     setIsOpen(true);
-
     try {
       const { cart: updatedCart } = await medusa.carts.lineItems.create(
         activeCartId,
-        { variant_id: variantId, quantity: 1 }
+        { variant_id: variantId, quantity: quantity },
       );
       setCart(updatedCart);
     } catch (e) {
-      console.warn("Cart add failed. Retrying with new cart...");
-      try {
-        const freshCart = await createNewCart();
-        const { cart: retryCart } = await medusa.carts.lineItems.create(
-          freshCart.id,
-          { variant_id: variantId, quantity: 1 }
-        );
-        setCart(retryCart);
-      } catch (retryError) {
-        alert("Could not add item. Please refresh the page.");
-      }
+      // Retry logic if cart expired
+      const freshCart = await createNewCart();
+      const { cart: retryCart } = await medusa.carts.lineItems.create(
+        freshCart.id,
+        { variant_id: variantId, quantity: quantity },
+      );
+      setCart(retryCart);
     }
   }
 
-  // --- 4. NEW: Update Quantity Function ---
+  // 4. Update Quantity
   async function updateItem(lineId, quantity) {
-    if (!cart?.id) return;
-
-    // Optimistic UI check: Don't allow less than 1 (use remove for that)
-    if (quantity < 1) return;
-
+    if (!cart?.id || quantity < 1) return;
     try {
       const { cart: updatedCart } = await medusa.carts.lineItems.update(
         cart.id,
         lineId,
-        { quantity }
+        { quantity },
       );
       setCart(updatedCart);
     } catch (e) {
-      console.error("Failed to update quantity:", e);
-      alert("Cannot update quantity. Likely out of stock.");
+      console.error(e);
     }
   }
 
-  // 5. Remove Item Function
+  // 5. Remove Item (FIXED)
   async function removeItem(lineId) {
     if (!cart?.id) return;
-    const BASE_URL =
-      process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://127.0.0.1:9000";
-    const API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
-
     try {
-      const res = await fetch(
-        `${BASE_URL}/store/carts/${cart.id}/line-items/${lineId}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            "x-publishable-api-key": API_KEY,
-          },
-        }
-      );
-      const data = await res.json();
-      const updatedCart = data.parent || data.cart;
+      // 1. Delete the item
+      await medusa.carts.lineItems.delete(cart.id, lineId);
 
-      if (updatedCart) {
-        setCart(updatedCart);
-      } else {
-        const { cart: refetchedCart } = await medusa.carts.retrieve(cart.id);
-        if (refetchedCart) setCart(refetchedCart);
-      }
+      // 2. FIX: Force a refresh from server to ensure perfect sync
+      // This prevents "deleting one deletes all" visual bugs by getting the source of truth
+      await refreshCart(cart.id);
     } catch (e) {
       console.error("Failed to remove item", e);
     }
   }
 
-  // 6. Reset Helper
   const resetCart = async () => {
     localStorage.removeItem("cart_id");
     setCart(null);
@@ -132,7 +100,6 @@ export function CartProvider({ children }) {
 
   return (
     <CartContext.Provider
-      // Expose updateItem here
       value={{
         cart,
         setCart,

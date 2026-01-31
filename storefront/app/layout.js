@@ -2,7 +2,7 @@ import { Vazirmatn } from "next/font/google"; // <--- 1. Import Vazirmatn
 import "./globals.css";
 import { CartProvider } from "@/context/cart-context";
 import { AccountProvider } from "@/context/account-context";
-import { CartSidebar } from "@/components/ui/cart-sidebar";
+import { CartSidebar } from "@/components/layout/cart-sidebar";
 import { Navbar } from "@/components/layout/nav-bar";
 import { Footer } from "@/components/layout/footer";
 import Providers from "@/components/global/providers";
