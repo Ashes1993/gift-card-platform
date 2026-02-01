@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { listOrders } from "./actions";
 import { formatPrice } from "@/lib/utils";
 import Link from "next/link";
-import Image from "next/image"; // OPTIMIZATION: Use Next Image
+import Image from "next/image";
 import AccountLayout from "@/components/account/account-layout";
 import { motion } from "framer-motion";
 import {

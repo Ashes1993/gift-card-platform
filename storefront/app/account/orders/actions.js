@@ -10,16 +10,19 @@ export async function listOrders(token, page = 1, limit = 10) {
   try {
     const offset = (page - 1) * limit;
 
-    // FIX: Added '&order=-created_at'
-    // This forces the Database to return Newest orders first, which is critical for pagination.
+    // OPTIMIZATION: Request 'items.metadata' explicitly
+    // This ensures our custom labels (e.g. { title: "$10" }) are never stripped out.
+    const fields = "*items,*items.variant,*items.metadata";
+
     const res = await fetch(
-      `${BASE_URL}/store/orders?offset=${offset}&limit=${limit}&fields=*items,*items.variant&order=-created_at`,
+      `${BASE_URL}/store/orders?offset=${offset}&limit=${limit}&fields=${fields}&order=-created_at`,
       {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
           "x-publishable-api-key": API_KEY,
         },
+        // CRITICAL: Order history must always be live.
         cache: "no-store",
       },
     );
@@ -32,7 +35,7 @@ export async function listOrders(token, page = 1, limit = 10) {
     const data = await res.json();
     let orders = data.orders || [];
 
-    // Fallback: Ensure they are sorted in JS as well (just in case the API ignores the param)
+    // Fallback client-side sort (safety net)
     orders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     return {
