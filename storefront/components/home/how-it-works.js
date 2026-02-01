@@ -1,61 +1,83 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Search, CreditCard, Mail } from "lucide-react";
+import { MousePointerClick, CreditCard, Gift } from "lucide-react";
 
 // 🛠️ Persian Steps Configuration
 const steps = [
   {
-    icon: Search,
-    title: "۱. انتخاب گیفت کارت", // 1. Choose Gift Card
-    desc: "از میان صدها گیفت کارت معتبر (اپل، گوگل پلی، و ...)، محصول مورد نظر خود را انتخاب کنید.",
+    icon: MousePointerClick, // Changed from Search to Click (more action-oriented)
+    title: "۱. انتخاب محصول",
+    desc: "گیفت کارت مورد نظر خود را از بین محصولات اپل و گوگل پلی انتخاب کنید.",
   },
   {
     icon: CreditCard,
-    title: "۲. پرداخت امن", // 2. Secure Payment
-    desc: "هزینه را به صورت ریالی (کارت‌های شتاب) یا با ارز دیجیتال (تتر/بیت‌کوین) پرداخت کنید.",
+    title: "۲. پرداخت امن",
+    desc: "هزینه سفارش را با کارت بانکی (شتاب) یا ارز دیجیتال (تتر/بیت‌کوین) پرداخت کنید.",
   },
   {
-    icon: Mail,
-    title: "۳. تحویل آنی", // 3. Instant Delivery
-    desc: "کد گیفت کارت بلافاصله پس از پرداخت به ایمیل شما ارسال و در پنل کاربری نمایش داده می‌شود.",
+    icon: Gift,
+    title: "۳. تحویل سریع",
+    desc: "کد گیفت کارت پس از پرداخت و بررسی سفارش در اسرع وقت به ایمیل شما ارسال و در پنل نمایش داده می‌شود.",
   },
 ];
 
 export function HowItWorks() {
   return (
-    <section className="py-24 bg-white">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-            مراحل خرید
-          </h2>
-          <p className="mt-4 text-lg text-gray-600">
-            گیفت کارت خود را در ۳ مرحله ساده دریافت کنید.
-          </p>
+    <section className="relative overflow-hidden bg-white py-24">
+      {/* Background Decor (Optional subtle pattern) */}
+      <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-30" />
+
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="text-center mb-20">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <h2 className="text-3xl font-black tracking-tight text-gray-900 sm:text-4xl">
+              چطور خرید کنیم؟
+            </h2>
+            <p className="mt-4 text-lg text-gray-500">
+              ساده‌تر از چیزی که فکرش را می‌کنید.
+            </p>
+          </motion.div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
+        <div className="relative grid grid-cols-1 gap-12 md:grid-cols-3">
           {/* Connector Line (Desktop Only) */}
-          {/* In RTL, left/right positioning works the same for a centered line, connecting the rightmost to leftmost items */}
-          <div className="hidden md:block absolute top-12 left-[16%] right-[16%] h-0.5 bg-gray-100 -z-10" />
+          {/* RTL Note: The line connects elements. A centered dashed line works perfectly for both RTL/LTR visual flow */}
+          <div className="absolute left-0 right-0 top-12 hidden h-0.5 w-full -translate-y-1/2 md:block">
+            <div className="h-full w-full border-t-2 border-dashed border-gray-200" />
+          </div>
 
           {steps.map((step, idx) => (
             <motion.div
               key={idx}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: idx * 0.2 }}
-              className="flex flex-col items-center text-center"
+              transition={{ delay: idx * 0.2, duration: 0.5 }}
+              className="group relative flex flex-col items-center text-center"
             >
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-50 border-4 border-white shadow-lg mb-6">
-                <step.icon className="h-10 w-10 text-blue-600" />
+              {/* Icon Circle */}
+              <div className="relative mb-8 flex h-24 w-24 items-center justify-center rounded-3xl bg-white shadow-lg shadow-gray-200 ring-1 ring-gray-100 transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl">
+                <div className="absolute inset-0 rounded-3xl bg-gradient-to-tr from-blue-50 to-purple-50 opacity-50 transition-opacity group-hover:opacity-100" />
+                <step.icon className="relative h-10 w-10 text-gray-700 transition-colors group-hover:text-blue-600" />
+
+                {/* Number Badge */}
+                <span className="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black text-sm font-bold text-white shadow-md">
+                  {idx + 1}
+                </span>
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">
+
+              {/* Text Content */}
+              <h3 className="mb-3 text-xl font-bold text-gray-900">
                 {step.title}
               </h3>
-              <p className="text-gray-500 max-w-xs leading-relaxed">
+              <p className="max-w-xs text-sm leading-7 text-gray-500">
                 {step.desc}
               </p>
             </motion.div>

@@ -1,129 +1,196 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react"; // Switched ArrowRight to ArrowLeft
+import { ArrowLeft, ShieldCheck, Smartphone, Zap } from "lucide-react";
 
-// 🛠️ Persian Slides Configuration
 const SLIDES = [
   {
     id: 1,
-    image:
-      "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070&auto=format&fit=crop", // Gaming Setup
-    title: "هیجان بازی بدون توقف",
-    highlight: "تحویل آنی",
+    image: "/slides/slider-apple.avif",
+    title: "دنیای بی‌پایان اپل",
+    highlight: "گیفت کارت آیتونز",
     description:
-      "گیفت کارت‌های استیم، پلی‌استیشن و ایکس‌باکس را در لحظه بخرید و بلافاصله کد را دریافت کنید.",
-    cta: "خرید محصولات گیمینگ",
-    link: "/store?category=gaming",
+      "دسترسی نامحدود به اپ استور، اپل موزیک و هزاران بازی و برنامه. تحویل آنی کد اورجینال آمریکا.",
+    cta: "خرید گیفت کارت اپل",
+    link: "/store",
+    icon: <Smartphone className="mb-4 h-10 w-10 text-blue-400" />,
+    color: "from-blue-600 to-purple-600",
   },
   {
     id: 2,
-    image:
-      "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=2070&auto=format&fit=crop", // Shopping Bags
-    title: "هدیه‌ای برای تمام سلیقه‌ها",
-    highlight: "انتخابی هوشمندانه",
+    image: "/slides/slider-google.jpg",
+    title: "هیجان بازی در اندروید",
+    highlight: "گیفت کارت گوگل پلی",
     description:
-      "از آمازون تا اسپاتیفای، بهترین هدیه دیجیتال را برای دوستان و خانواده خود پیدا کنید.",
-    cta: "مشاهده همه محصولات",
+      "خرید اعتبار گوگل پلی برای کلش آف کلنز، پابجی و هزاران بازی دیگر. بدون تاریخ انقضا.",
+    cta: "خرید گیفت کارت گوگل",
     link: "/store",
+    icon: <Zap className="mb-4 h-10 w-10 text-green-400" />,
+    color: "from-green-600 to-teal-600",
   },
   {
     id: 3,
-    image:
-      "https://images.unsplash.com/photo-1512314889357-e157c22f938d?q=80&w=2071&auto=format&fit=crop", // Crypto / Tech
-    title: "پرداخت امن با ارز دیجیتال",
+    image: "/slides/slider-crypto.avif",
+    title: "پرداخت امن با کریپتو",
     highlight: "حریم خصوصی کامل",
     description:
-      "بدون نیاز به کارت بانکی، با بیت‌کوین، تتر و اتریوم خریدهای خود را به صورت ناشناس انجام دهید.",
-    cta: "شروع خرید",
+      "بدون نیاز به کارت بانکی یا احراز هویت پیچیده. با تتر و بیت‌کوین خریدهای خود را ناشناس انجام دهید.",
+    cta: "مشاهده فروشگاه",
     link: "/store",
+    icon: <ShieldCheck className="mb-4 h-10 w-10 text-yellow-400" />,
+    color: "from-orange-500 to-yellow-500",
   },
 ];
 
+const SWIPE_CONFIDENCE_THRESHOLD = 10000;
+const swipePower = (offset, velocity) => {
+  return Math.abs(offset) * velocity;
+};
+
 export function HeroCarousel() {
   const [current, setCurrent] = useState(0);
+  const timeoutRef = useRef(null);
+
+  // Track if we are currently dragging to pause auto-slide
+  const [isDragging, setIsDragging] = useState(false);
+
+  const resetTimeout = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+  };
+
+  const nextSlide = useCallback(() => {
+    setCurrent((prev) => (prev === SLIDES.length - 1 ? 0 : prev + 1));
+  }, []);
+
+  const prevSlide = useCallback(() => {
+    setCurrent((prev) => (prev === 0 ? SLIDES.length - 1 : prev - 1));
+  }, []);
 
   // Auto-slide logic
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrent((prev) => (prev === SLIDES.length - 1 ? 0 : prev + 1));
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const nextSlide = () =>
-    setCurrent(current === SLIDES.length - 1 ? 0 : current + 1);
-  const prevSlide = () =>
-    setCurrent(current === 0 ? SLIDES.length - 1 : current - 1);
+    resetTimeout();
+    if (!isDragging) {
+      timeoutRef.current = setTimeout(nextSlide, 6000);
+    }
+    return () => resetTimeout();
+  }, [current, isDragging, nextSlide]);
 
   return (
-    <section className="relative h-[600px] w-full overflow-hidden bg-gray-900 text-white">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={current}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.7 }}
-          className="absolute inset-0"
-        >
-          {/* Background Image with Overlay */}
+    <section
+      className="relative h-[500px] w-full overflow-hidden bg-gray-950 text-white sm:h-[90vh] select-none"
+      onMouseEnter={resetTimeout}
+      onMouseLeave={() => !isDragging && resetTimeout()}
+    >
+      {/* WRAPPER: The entire area is draggable. 
+         drag="x" enables horizontal dragging.
+         dragConstraints={{ left: 0, right: 0 }} makes it snap back (elastic feel).
+      */}
+      <motion.div
+        className="absolute inset-0 h-full w-full cursor-grab active:cursor-grabbing"
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.2}
+        onDragStart={() => setIsDragging(true)}
+        onDragEnd={(e, { offset, velocity }) => {
+          setIsDragging(false);
+          const swipe = swipePower(offset.x, velocity.x);
+
+          // RTL Logic:
+          // Dragging Left (Negative X) -> Next Slide
+          // Dragging Right (Positive X) -> Prev Slide
+          if (swipe < -SWIPE_CONFIDENCE_THRESHOLD) {
+            nextSlide();
+          } else if (swipe > SWIPE_CONFIDENCE_THRESHOLD) {
+            prevSlide();
+          }
+        }}
+      >
+        {SLIDES.map((slide, index) => (
           <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${SLIDES[current].image})` }}
-          />
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" />
-        </motion.div>
-      </AnimatePresence>
-
-      {/* Content Layer */}
-      <div className="relative z-10 mx-auto flex h-full max-w-7xl flex-col justify-center px-4 sm:px-6 lg:px-8">
-        <motion.div
-          key={`text-${current}`}
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-          className="max-w-2xl"
-        >
-          <span className="mb-4 inline-block rounded-full bg-blue-600/20 px-4 py-1.5 text-sm font-semibold text-blue-400 backdrop-blur-md border border-blue-500/30">
-            {SLIDES[current].highlight}
-          </span>
-          <h1 className="mb-6 text-5xl font-extrabold tracking-tight md:text-7xl leading-tight font-sans">
-            {SLIDES[current].title}
-          </h1>
-          <p className="mb-8 text-xl text-gray-200 leading-relaxed">
-            {SLIDES[current].description}
-          </p>
-          <Link
-            href={SLIDES[current].link}
-            className="inline-flex items-center rounded-full bg-blue-600 px-8 py-4 text-lg font-semibold text-white transition-all hover:bg-blue-700 hover:scale-105 shadow-lg shadow-blue-600/40"
+            key={slide.id}
+            className={`absolute inset-0 h-full w-full transition-opacity duration-700 ease-in-out pointer-events-none ${
+              index === current ? "opacity-100 z-10" : "opacity-0 z-0"
+            }`}
           >
-            {SLIDES[current].cta}
-            {/* Swapped ArrowRight for ArrowLeft for RTL "Forward" motion */}
-            <ArrowLeft className="mr-2 h-5 w-5" />
-          </Link>
-        </motion.div>
-      </div>
+            <Image
+              src={slide.image}
+              alt={slide.title}
+              fill
+              priority={index === 0}
+              // FIX 1: draggable={false} prevents the browser from trying to save the image
+              draggable={false}
+              className="object-cover brightness-[0.35] will-change-transform"
+              sizes="100vw"
+            />
 
-      {/* Navigation Controls */}
-      {/* Moved from right-8 to left-8 for RTL mirroring */}
-      <div className="absolute bottom-8 left-8 flex gap-4 z-20">
-        <button
-          onClick={prevSlide}
-          className="rounded-full bg-white/10 p-3 hover:bg-white/20 backdrop-blur-md transition border border-white/20"
-        >
-          {/* In RTL, 'Previous' is usually the Right Arrow */}
-          <ChevronRight className="h-6 w-6 text-white" />
-        </button>
-        <button
-          onClick={nextSlide}
-          className="rounded-full bg-white/10 p-3 hover:bg-white/20 backdrop-blur-md transition border border-white/20"
-        >
-          {/* In RTL, 'Next' is usually the Left Arrow */}
-          <ChevronLeft className="h-6 w-6 text-white" />
-        </button>
+            <div className="absolute inset-0 bg-gradient-to-r from-gray-950 via-gray-950/50 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-transparent to-transparent opacity-90" />
+          </div>
+        ))}
+
+        {/* Content Layer - Pointer Events Auto needed for buttons */}
+        <div className="relative z-20 mx-auto flex h-full max-w-7xl flex-col justify-center px-6 sm:px-8 lg:px-12 pointer-events-none">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`text-${current}`}
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -30 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+              className="max-w-3xl"
+            >
+              <div className="flex items-center gap-2">
+                {SLIDES[current].icon}
+                <span
+                  className={`mb-4 inline-block rounded-full bg-gradient-to-r ${SLIDES[current].color} bg-clip-text text-sm font-bold text-transparent`}
+                >
+                  — {SLIDES[current].highlight}
+                </span>
+              </div>
+
+              <h1 className="mb-6 text-4xl font-black tracking-tight sm:text-6xl md:text-7xl leading-[1.1]">
+                {SLIDES[current].title}
+              </h1>
+
+              <p className="mb-10 max-w-xl text-lg text-gray-300 leading-8 sm:text-xl">
+                {SLIDES[current].description}
+              </p>
+
+              {/* FIX 2: The Button needs pointer-events-auto because the parent has pointer-events-none.
+                  onPointerDown stopPropagation ensures clicking the button doesn't start a drag.
+              */}
+              <div className="pointer-events-auto inline-block">
+                <Link
+                  href={SLIDES[current].link}
+                  className="group inline-flex items-center gap-3 rounded-full bg-white px-8 py-4 text-base font-bold text-black transition-all hover:scale-105 hover:bg-gray-100 hover:shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)]"
+                  onPointerDown={(e) => e.stopPropagation()}
+                >
+                  {SLIDES[current].cta}
+                  <ArrowLeft className="h-5 w-5 transition-transform group-hover:-translate-x-1" />
+                </Link>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </motion.div>
+
+      {/* Slide Indicators (Dots) - Must be outside the draggable container to work reliably */}
+      <div className="absolute bottom-10 right-6 flex gap-2 z-30 sm:right-12">
+        {SLIDES.map((_, idx) => (
+          <button
+            key={idx}
+            onClick={() => setCurrent(idx)}
+            className={`h-2 rounded-full transition-all duration-300 ${
+              idx === current
+                ? "w-8 bg-white"
+                : "w-2 bg-white/30 hover:bg-white/60"
+            }`}
+            aria-label={`Go to slide ${idx + 1}`}
+          />
+        ))}
       </div>
     </section>
   );

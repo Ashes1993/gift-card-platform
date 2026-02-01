@@ -1,44 +1,75 @@
 export function SeoContent() {
   return (
-    <section className="py-16 bg-white border-t border-gray-100">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-gray-500 text-sm leading-relaxed text-justify">
-        <h3 className="text-lg font-bold text-gray-900 mb-4 text-right">
-          گیفت کارت دات آی‌او؛ مرجع تخصصی خرید گیفت کارت و پرداخت ارزی
-        </h3>
-        <p className="mb-4 text-right">
-          به فروشگاه ما خوش آمدید؛ ساده‌ترین راه برای خرید آنلاین گیفت کارت با
-          تحویل آنی. چه به دنبال <strong>خرید گیفت کارت اپل (Apple ID)</strong>{" "}
-          باشید، چه قصد شارژ اکانت
-          <strong>گوگل پلی (Google Play)</strong> یا خرید{" "}
-          <strong>گیفت کارت استیم</strong> را داشته باشید، ما تجربه‌ای امن و
-          سریع را برای گیمرها و کاربران ایرانی فراهم کرده‌ایم.
-        </p>
-        <div className="grid md:grid-cols-2 gap-8 mt-8">
-          <div>
-            <h4 className="font-semibold text-gray-900 mb-2 text-right">
-              خرید با ارز دیجیتال و کارت بانکی
-            </h4>
+    <section className="border-t border-gray-100 bg-white py-16">
+      <div className="mx-auto max-w-7xl px-4 text-justify text-sm leading-8 text-gray-500 sm:px-6 lg:px-8">
+        {/* Main H1/H2 equivalent for SEO */}
+        <div className="mb-8">
+          <h2 className="mb-4 text-right text-lg font-black text-gray-900">
+            خرید گیفت کارت قانونی و ارزان؛ تحویل سریع با تضمین سلامت
+          </h2>
+          <p className="text-right">
+            به فروشگاه تخصصی گیفت کارت خوش آمدید. ما ساده‌ترین راه را برای دور
+            زدن تحریم‌ها و دسترسی به خدمات جهانی فراهم کرده‌ایم. اگر به دنبال{" "}
+            <strong>خرید گیفت کارت اپل (Apple Gift Card)</strong> برای شارژ اپل
+            آیدی خود هستید یا برای خرید جم و امکانات بازی‌ها نیاز به{" "}
+            <strong>گیفت کارت گوگل پلی (Google Play)</strong> دارید، جای درستی
+            آمده‌اید. تمامی کدهای ما مستقیماً از استورهای آمریکا تهیه شده و
+            دارای ضمانت مادام‌العمر (No Expiry) هستند.
+          </p>
+        </div>
+
+        <div className="mt-10 grid gap-10 md:grid-cols-2 lg:grid-cols-3">
+          {/* Column 1: Apple Focus */}
+          <article>
+            <h3 className="mb-2 text-right font-bold text-gray-900">
+              چرا گیفت کارت اپل آیتونز؟
+            </h3>
             <p className="text-right">
-              ما در روش‌های پرداخت انعطاف‌پذیر هستیم. می‌توانید محصولات ما را با
-              استفاده از
-              <strong>کارت‌های بانکی عضو شتاب</strong> و یا ارزهای دیجیتال مانند
-              <strong>بیت‌کوین (BTC)</strong>، <strong>اتریوم (ETH)</strong> و
-              <strong>تتر (USDT)</strong> خریداری کنید. از کارمزد پایین، امنیت
-              بالا و حریم خصوصی کامل لذت ببرید.
+              با خرید گیفت کارت اپل آمریکا، به میلیون‌ها اپلیکیشن، بازی، فیلم و
+              موسیقی در <strong>App Store</strong> و <strong>iTunes</strong>{" "}
+              دسترسی خواهید داشت. همچنین برای پرداخت هزینه سرویس‌های محبوبی مثل{" "}
+              <strong>iCloud</strong> (آیکلود)، <strong>Apple Music</strong> و
+              اپل تی‌وی پلاس، استفاده از گیفت کارت بهترین و امن‌ترین روش برای
+              کاربران ایرانی است.
             </p>
-          </div>
-          <div>
-            <h4 className="font-semibold text-gray-900 mb-2 text-right">
-              تحویل آنی و پشتیبانی ۲۴ ساعته
-            </h4>
+          </article>
+
+          {/* Column 2: Google Focus */}
+          <article>
+            <h3 className="mb-2 text-right font-bold text-gray-900">
+              دنیای بازی‌ها با گوگل پلی
+            </h3>
             <p className="text-right">
-              دیگر نیازی به انتظار برای ارسال فیزیکی نیست. سیستم خودکار ما کدهای
-              دیجیتال ۱۰۰٪ معتبر را تنها چند ثانیه پس از تأیید پرداخت به ایمیل
-              شما ارسال می‌کند. تیم پشتیبانی ما نیز به صورت ۲۴ ساعته آماده
-              راهنمایی شما برای ردیم کردن (Redeem) کدها در ایکس‌باکس، پلی‌استیشن
-              و اپل است.
+              گیمرهای اندروید می‌دانند که برای خرید جم در بازی‌هایی مثل{" "}
+              <strong>Clash of Clans</strong>، <strong>PUBG Mobile</strong> و{" "}
+              <strong>Call of Duty</strong>، نیاز به شارژ اکانت گوگل دارند. با
+              گیفت کارت‌های گوگل پلی ما، می‌توانید بدون نیاز به ویزا کارت، اکانت
+              خود را شارژ کرده و از خریدهای درون‌برنامه‌ای لذت ببرید.
             </p>
-          </div>
+          </article>
+
+          {/* Column 3: Payment & Delivery (The Pivot) */}
+          <article>
+            <h3 className="mb-2 text-right font-bold text-gray-900">
+              پرداخت با تتر و تحویل امن
+            </h3>
+            <p className="text-right">
+              ما دغدغه کاربران ایرانی را درک می‌کنیم. به همین دلیل امکان خرید با{" "}
+              <strong>ارز دیجیتال (تتر/USDT و بیت‌کوین)</strong> را در کنار
+              درگاه بانکی فراهم کرده‌ایم. برای امنیت بیشتر، تمام کدها قبل از
+              ارسال توسط کارشناسان بررسی می‌شوند تا از فعال بودن و صحت آن‌ها
+              اطمینان حاصل شود؛ بنابراین خریدی امن و بدون ریسک را تجربه خواهید
+              کرد.
+            </p>
+          </article>
+        </div>
+
+        {/* Footer Note */}
+        <div className="mt-8 rounded-xl bg-gray-50 p-4 text-xs text-gray-400">
+          <p className="text-right">
+            کلمات کلیدی: خرید گیفت کارت فوری، گیفت کارت اپل ارزان، خرید گوگل پلی
+            با تتر، شارژ اپل آیدی، گیفت کارت آمریکا، خرید با ارز دیجیتال.
+          </p>
         </div>
       </div>
     </section>
