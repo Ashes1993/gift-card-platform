@@ -10,7 +10,6 @@ export async function placeOrder({ cartId, email, token }) {
     "x-publishable-api-key": API_KEY,
   };
 
-  // 1. ATTACH TOKEN (Crucial: This is how Medusa identifies the user)
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
@@ -18,75 +17,64 @@ export async function placeOrder({ cartId, email, token }) {
   console.log(`[Checkout] 🚀 STARTING for Cart: ${cartId}`);
 
   try {
-    // --- STEP 1: LINK CUSTOMER ---
-    // We update the email. Because we are sending the 'Authorization' header,
-    // Medusa will AUTOMATICALLY link the cart to the logged-in customer.
-    // We DO NOT send 'customer_id' in the body (that causes the 400 error).
-
+    // --- STEP 1: LINK EMAIL & CUSTOMER ---
     let emailToUpdate = email;
 
-    // If logged in, prefer the account email to ensure consistency
+    // If logged in, fetch the authoritative email from profile
     if (token) {
       try {
         const customerRes = await fetch(`${BASE_URL}/store/customers/me`, {
           headers,
+          cache: "no-store",
         });
         const customerData = await customerRes.json();
         if (customerData.customer?.email) {
           emailToUpdate = customerData.customer.email;
-          console.log(`[Checkout] 👤 Auth User Detected: ${emailToUpdate}`);
         }
       } catch (e) {
-        console.warn(
-          "Could not fetch customer profile, sticking to form email."
-        );
+        console.warn("Could not fetch customer profile, using form email.");
       }
     }
 
-    console.log(
-      `[Checkout] 🔄 Linking Cart & Updating Email to: ${emailToUpdate}`
-    );
-
+    // Update Cart with Email
     const updateRes = await fetch(`${BASE_URL}/store/carts/${cartId}`, {
       method: "POST",
       headers,
-      body: JSON.stringify({
-        email: emailToUpdate,
-        // REMOVED: customer_id (This was the cause of the crash)
-      }),
+      body: JSON.stringify({ email: emailToUpdate }),
     });
 
-    if (!updateRes.ok) {
-      // If this fails, we log it but don't stop.
-      // Sometimes a cart is already linked or email is same.
-      console.error("⚠️ Cart Update Warning:", await updateRes.text());
-    } else {
-      const updateData = await updateRes.json();
-      const linkedId = updateData.cart?.customer_id;
-      console.log(
-        `[Checkout] ✅ Cart Update Success. Linked Customer ID: ${
-          linkedId || "Guest"
-        }`
-      );
-    }
+    if (!updateRes.ok)
+      console.warn("⚠️ Cart Update Warning:", await updateRes.text());
 
-    // --- STEP 2: SHIPPING ---
+    // --- STEP 2: SHIPPING (Digital Delivery) ---
+    // Fetch available options for this region/cart
     const optionsRes = await fetch(
       `${BASE_URL}/store/shipping-options?cart_id=${cartId}`,
-      { headers }
+      { headers, cache: "no-store" },
     );
     const optionsData = await optionsRes.json();
     const options = optionsData.shipping_options || [];
 
-    if (options.length > 0) {
-      await fetch(`${BASE_URL}/store/carts/${cartId}/shipping-methods`, {
+    if (options.length === 0) {
+      throw new Error(
+        "No shipping option configured for this region. Please contact support.",
+      );
+    }
+
+    // Select the first option (Usually "Instant Delivery")
+    const shippingRes = await fetch(
+      `${BASE_URL}/store/carts/${cartId}/shipping-methods`,
+      {
         method: "POST",
         headers,
         body: JSON.stringify({ option_id: options[0].id }),
-      });
-    }
+      },
+    );
 
-    // --- STEP 3: PAYMENT ---
+    if (!shippingRes.ok) throw new Error("Failed to set shipping method.");
+
+    // --- STEP 3: PAYMENT SESSIONS ---
+    // 1. Create Payment Collection
     const collectionRes = await fetch(`${BASE_URL}/store/payment-collections`, {
       method: "POST",
       headers,
@@ -99,18 +87,19 @@ export async function placeOrder({ cartId, email, token }) {
     const collectionData = await collectionRes.json();
     const collectionId = collectionData.payment_collection?.id;
 
+    // 2. Initialize "System Default" (Manual/Simulation) Session
     const sessionRes = await fetch(
       `${BASE_URL}/store/payment-collections/${collectionId}/payment-sessions`,
       {
         method: "POST",
         headers,
         body: JSON.stringify({ provider_id: "pp_system_default" }),
-      }
+      },
     );
 
     if (!sessionRes.ok) throw new Error("Failed to init payment session");
 
-    // --- STEP 4: COMPLETE ---
+    // --- STEP 4: COMPLETE ORDER ---
     console.log("[Checkout] ✅ Completing Order...");
     const completeRes = await fetch(
       `${BASE_URL}/store/carts/${cartId}/complete`,
@@ -118,7 +107,7 @@ export async function placeOrder({ cartId, email, token }) {
         method: "POST",
         headers,
         body: JSON.stringify({}),
-      }
+      },
     );
 
     const completeData = await completeRes.json();
