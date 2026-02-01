@@ -74,16 +74,19 @@ export function CartSidebar() {
                     item.thumbnail?.includes("127.0.0.1");
 
                   // -----------------------------------------------------------
-                  // FIX: Prioritize 'variant.title' over 'description'
+                  // FIX: Prioritize Metadata (The Strategy we agreed on)
                   // -----------------------------------------------------------
-                  // We also try to look for options directly if available
                   let variantLabel = "";
 
-                  // Method 1: Try Options (Most Accurate)
-                  if (item.variant?.options?.[0]?.value) {
+                  // Priority 1: Metadata (The manual label we sent, e.g. "$10")
+                  if (item.metadata?.title) {
+                    variantLabel = item.metadata.title;
+                  }
+                  // Priority 2: Option Value (Legacy fallback)
+                  else if (item.variant?.options?.[0]?.value) {
                     variantLabel = item.variant.options[0].value;
                   }
-                  // Method 2: Try Variant Title (e.g., "$10 Card")
+                  // Priority 3: Title cleaning (Legacy fallback)
                   else if (item.variant?.title) {
                     variantLabel = item.variant.title
                       .replace("Gift Card", "")
@@ -91,7 +94,6 @@ export function CartSidebar() {
                       .trim();
                   }
 
-                  // Fallback: If it says "Default Variant", hide it
                   if (variantLabel === "Default Variant") variantLabel = "";
 
                   return (

@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useCart } from "@/context/cart-context"; // Ensure you have this context
+import { useCart } from "@/context/cart-context";
 import { Loader2, ShoppingBag } from "lucide-react";
 
 export default function ProductPurchaseCard({ product, activeVariant }) {
-  const { addToCart } = useCart(); // Assuming your cart context exposes this
+  const { addToCart } = useCart();
   const [loading, setLoading] = useState(false);
 
   // Price formatting
@@ -18,9 +18,23 @@ export default function ProductPurchaseCard({ product, activeVariant }) {
   const handleAddToCart = async () => {
     if (!activeVariant) return;
     setLoading(true);
+
+    // 1. Generate clean label (e.g., "$10")
+    // We try to grab the option value first, fallback to title cleaning
+    let cleanLabel = activeVariant.options?.[0]?.value;
+
+    if (!cleanLabel) {
+      cleanLabel = activeVariant.title
+        .replace("Gift Card", "")
+        .replace("Card", "")
+        .trim();
+    }
+
     try {
-      await addToCart(activeVariant.id, 1);
-      // Maybe show toast here
+      // 2. Pass label as Metadata
+      await addToCart(activeVariant.id, 1, {
+        title: cleanLabel, // This is what the Cart Sidebar will display
+      });
     } catch (e) {
       console.error(e);
     } finally {

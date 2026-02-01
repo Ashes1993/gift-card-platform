@@ -37,8 +37,8 @@ export function CartProvider({ children }) {
     return cart;
   }
 
-  // 3. Add Item
-  async function addToCart(variantId, quantity = 1) {
+  // 3. Add Item (UPDATED to accept metadata)
+  async function addToCart(variantId, quantity = 1, customData = {}) {
     let activeCartId = cart?.id;
     if (!activeCartId) {
       const newCart = await createNewCart();
@@ -48,7 +48,11 @@ export function CartProvider({ children }) {
     try {
       const { cart: updatedCart } = await medusa.carts.lineItems.create(
         activeCartId,
-        { variant_id: variantId, quantity: quantity },
+        {
+          variant_id: variantId,
+          quantity: quantity,
+          metadata: customData, // <--- Injecting the Label here
+        },
       );
       setCart(updatedCart);
     } catch (e) {
@@ -56,7 +60,11 @@ export function CartProvider({ children }) {
       const freshCart = await createNewCart();
       const { cart: retryCart } = await medusa.carts.lineItems.create(
         freshCart.id,
-        { variant_id: variantId, quantity: quantity },
+        {
+          variant_id: variantId,
+          quantity: quantity,
+          metadata: customData,
+        },
       );
       setCart(retryCart);
     }
@@ -77,15 +85,11 @@ export function CartProvider({ children }) {
     }
   }
 
-  // 5. Remove Item (FIXED)
+  // 5. Remove Item
   async function removeItem(lineId) {
     if (!cart?.id) return;
     try {
-      // 1. Delete the item
       await medusa.carts.lineItems.delete(cart.id, lineId);
-
-      // 2. FIX: Force a refresh from server to ensure perfect sync
-      // This prevents "deleting one deletes all" visual bugs by getting the source of truth
       await refreshCart(cart.id);
     } catch (e) {
       console.error("Failed to remove item", e);
