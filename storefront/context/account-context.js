@@ -172,7 +172,7 @@ export function AccountProvider({ children }) {
         logout,
         requestOtp,
         verifyOtp,
-        medusaFetch, // Expose this if other components need authenticated fetch
+        medusaFetch,
       }}
     >
       {children}

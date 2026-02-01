@@ -11,8 +11,12 @@ export async function submitTicket(prevState, formData) {
   const message = formData.get("message");
   const orderId = formData.get("orderId");
 
+  // 1. Basic Validation
+  if (!email || !message || !name) {
+    return { success: false, error: "لطفاً تمام فیلدهای اجباری را پر کنید." };
+  }
+
   try {
-    // Call the Backend API we just created
     const res = await fetch(`${BASE_URL}/store/contact`, {
       method: "POST",
       headers: {
@@ -31,7 +35,7 @@ export async function submitTicket(prevState, formData) {
     const data = await res.json();
 
     if (!res.ok) {
-      throw new Error(data.message || "Server Error");
+      throw new Error(data.message || "خطا در برقراری ارتباط با سرور");
     }
 
     return { success: true, ticketId: data.ticketId };
@@ -39,7 +43,7 @@ export async function submitTicket(prevState, formData) {
     console.error("[Support] 💥 Error:", error);
     return {
       success: false,
-      error: "Failed to send ticket. Please try again.",
+      error: "متاسفانه ارسال تیکت انجام نشد. لطفاً دقایقی دیگر تلاش کنید.",
     };
   }
 }
