@@ -9,7 +9,7 @@ import { ArrowLeft, ShieldCheck, Smartphone, Zap } from "lucide-react";
 const SLIDES = [
   {
     id: 1,
-    image: "/slides/slider-apple.avif",
+    image: "/images/slides/slider-apple.avif",
     title: "دنیای بی‌پایان اپل",
     highlight: "گیفت کارت آیتونز",
     description:
@@ -21,7 +21,7 @@ const SLIDES = [
   },
   {
     id: 2,
-    image: "/slides/slider-google.jpg",
+    image: "/images/slides/slider-google.jpg",
     title: "هیجان بازی در اندروید",
     highlight: "گیفت کارت گوگل پلی",
     description:
@@ -33,7 +33,7 @@ const SLIDES = [
   },
   {
     id: 3,
-    image: "/slides/slider-crypto.avif",
+    image: "/images/slides/slider-crypto.avif",
     title: "پرداخت امن با کریپتو",
     highlight: "حریم خصوصی کامل",
     description:
