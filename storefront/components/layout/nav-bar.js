@@ -22,8 +22,11 @@ export function Navbar() {
   const itemCount =
     cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
 
+  // 🛠️ UPDATED NAVIGATION LINKS
   const navLinks = [
+    { name: "خانه", href: "/" }, // Added Home
     { name: "فروشگاه", href: "/store", prefetch: false },
+    { name: "وبلاگ", href: "/blog" }, // Added Blog
     { name: "پشتیبانی", href: "/support" },
     { name: "درباره ما", href: "/about" },
   ];
@@ -93,7 +96,6 @@ export function Navbar() {
               <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 text-gray-500 group-hover:bg-black group-hover:text-white transition-colors">
                 <User size={14} />
               </div>
-              {/* FIX: Truncate long names so layout doesn't break */}
               <span className="hidden max-w-[100px] truncate sm:inline-block">
                 {customer.first_name || "حساب کاربری"}
               </span>
