@@ -49,7 +49,7 @@ export function Features() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-black tracking-tight text-gray-900 sm:text-4xl">
-            چرا گیفت‌کارت.آیو؟
+            چرا نکست لایسنس؟
           </h2>
           <p className="mt-4 text-lg text-gray-500">
             تفاوت ما در امنیت، کیفیت و پشتیبانی است.

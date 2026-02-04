@@ -80,7 +80,7 @@ export function HeroCarousel() {
 
   return (
     <section
-      className="relative h-[500px] w-full overflow-hidden bg-gray-950 text-white sm:h-[92vh] select-none"
+      className="relative h-[500px] w-full overflow-hidden bg-gray-950 text-white sm:h-[93vh] select-none"
       onMouseEnter={resetTimeout}
       onMouseLeave={() => !isDragging && resetTimeout()}
     >

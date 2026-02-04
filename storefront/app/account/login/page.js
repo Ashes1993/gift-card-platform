@@ -1,7 +1,7 @@
 import LoginForm from "@/components/account/login-form";
 
 export const metadata = {
-  title: "ورود به حساب کاربری | فروشگاه گیفت کارت",
+  title: "ورود به حساب کاربری | فروشگاه نکست لایسنس",
   description:
     "وارد حساب کاربری خود شوید تا به تاریخچه سفارشات و کدهای خریداری شده دسترسی پیدا کنید.",
   robots: {

@@ -38,7 +38,7 @@ export async function generateMetadata({ params }) {
   }
 
   return {
-    title: `${product.title} | فروشگاه گیفت کارت`,
+    title: `${product.title} | فروشگاه نکست لایسنس`,
     description: product.description
       ? product.description.slice(0, 160)
       : `خرید آنلاین ${product.title} با تحویل فوری.`,

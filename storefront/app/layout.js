@@ -1,7 +1,5 @@
-import { Vazirmatn } from "next/font/google"; // <--- 1. Import Vazirmatn
+import { Vazirmatn } from "next/font/google";
 import "./globals.css";
-import { CartProvider } from "@/context/cart-context";
-import { AccountProvider } from "@/context/account-context";
 import { CartSidebar } from "@/components/layout/cart-sidebar";
 import { Navbar } from "@/components/layout/nav-bar";
 import { Footer } from "@/components/layout/footer";
@@ -10,12 +8,12 @@ import Providers from "@/components/global/providers";
 // 2. Configure the font
 const vazirmatn = Vazirmatn({
   subsets: ["arabic", "latin"],
-  variable: "--font-vazir", // We define a CSS variable here
+  variable: "--font-vazir",
   display: "swap",
 });
 
 export const metadata = {
-  title: "فروشگاه گیفت کارت", // Persian Title
+  title: "فروشگاه نکست لایسنس",
   description: "خرید گیفت کارت‌های گوگل پلی و اپل",
 };
 

@@ -13,7 +13,7 @@ export function Navbar() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // UX OPTIMIZATION: Close mobile menu automatically when route changes
+  // Close mobile menu automatically when route changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [pathname]);
@@ -24,9 +24,9 @@ export function Navbar() {
 
   // 🛠️ UPDATED NAVIGATION LINKS
   const navLinks = [
-    { name: "خانه", href: "/" }, // Added Home
+    { name: "خانه", href: "/" },
     { name: "فروشگاه", href: "/store", prefetch: false },
-    { name: "وبلاگ", href: "/blog" }, // Added Blog
+    { name: "وبلاگ", href: "/blog" },
     { name: "پشتیبانی", href: "/support" },
     { name: "درباره ما", href: "/about" },
   ];
@@ -52,11 +52,8 @@ export function Navbar() {
             href="/"
             className="flex items-center gap-1.5 text-xl font-black tracking-tight text-gray-900 transition-opacity hover:opacity-80"
           >
-            <span>گیفت</span>
-            <span className="text-blue-600">کارت</span>
-            <span className="mt-1 text-[10px] font-bold text-gray-400 font-mono tracking-widest bg-gray-100 px-1 rounded">
-              IO
-            </span>
+            <span>نکست</span>
+            <span className="text-blue-600">لایسنس</span>
           </Link>
         </div>
 

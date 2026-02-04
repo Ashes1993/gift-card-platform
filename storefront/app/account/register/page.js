@@ -1,7 +1,7 @@
 import RegisterForm from "@/components/account/register-form";
 
 export const metadata = {
-  title: "ثبت نام - فروشگاه گیفت کارت",
+  title: "ثبت نام - فروشگاه نکست لایسنس",
   description:
     "ایجاد حساب کاربری جهت خرید آنی گیفت کارت گوگل پلی، اپل و پرداخت‌های ارزی.",
   robots: {

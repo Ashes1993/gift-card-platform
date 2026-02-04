@@ -4,7 +4,7 @@ import { getAllPosts } from "@/lib/blog";
 import { Calendar, User, ArrowLeft } from "lucide-react";
 
 export const metadata = {
-  title: "وبلاگ و مقالات آموزشی | گیفت کارت",
+  title: "وبلاگ و مقالات آموزشی | فروشگاه نکست لایسنس",
   description:
     "جدیدترین مقالات و آموزش‌های تخصصی درباره گیفت کارت‌ها و پرداخت‌های ارزی.",
 };

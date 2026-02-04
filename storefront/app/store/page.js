@@ -3,7 +3,7 @@ import StoreView from "@/components/product/store-view";
 
 // 1. Metadata for SEO
 export const metadata = {
-  title: "فروشگاه گیفت کارت | خرید گیفت کارت اپل و گوگل پلی",
+  title: "فروشگاه نکست لایسنس | خرید گیفت کارت اپل و گوگل پلی",
   description:
     "خرید انواع گیفت کارت اورجینال اپل (Apple Gift Card) و گوگل پلی (Google Play) با تحویل آنی و قیمت مناسب.",
   keywords: [
@@ -14,7 +14,7 @@ export const metadata = {
     "تحویل آنی",
   ],
   openGraph: {
-    title: "فروشگاه گیفت کارت - تحویل آنی",
+    title: "فروشگاه نکست لایسنس - تحویل سریع",
     description: "خرید انواع گیفت کارت اورجینال با قیمت مناسب",
     type: "website",
   },

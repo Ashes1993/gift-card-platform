@@ -6,11 +6,16 @@ import {
   Instagram,
   Send,
   Twitter,
+  FileText,
+  ShieldCheck,
 } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="w-full border-t border-gray-200 bg-gray-50 mt-24">
+    <footer
+      className="w-full border-t border-gray-200 bg-gray-50 mt-24"
+      dir="rtl"
+    >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-16 pb-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4 lg:gap-12">
           {/* Column 1: Brand, Mission & Socials */}
@@ -19,9 +24,8 @@ export function Footer() {
               href="/"
               className="flex items-center gap-1 text-2xl font-black tracking-tighter text-black"
             >
-              <span>گیفت</span>
-              <span className="text-blue-600">کارت</span>
-              <span className="text-gray-400 text-sm pt-1">.IO</span>
+              <span>نکست</span>
+              <span className="text-blue-600">لایسنس</span>
             </Link>
             <p className="text-sm leading-7 text-gray-500 text-justify">
               سریع‌ترین مرجع خرید امن گیفت کارت‌های دیجیتال گوگل پلی و اپل در
@@ -110,20 +114,20 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/faq"
+                  href="/terms-of-service"
                   className="group flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-all"
                 >
-                  <BookOpen className="h-4 w-4 text-gray-400 group-hover:text-blue-600" />
-                  <span>سوالات متداول</span>
+                  <FileText className="h-4 w-4 text-gray-400 group-hover:text-blue-600" />
+                  <span>قوانین و مقررات</span>
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/privacy"
+                  href="/privacy-policy"
                   className="group flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-all"
                 >
-                  <Mail className="h-4 w-4 text-gray-400 group-hover:text-blue-600" />
-                  <span>حریم خصوصی و قوانین</span>
+                  <ShieldCheck className="h-4 w-4 text-gray-400 group-hover:text-blue-600" />
+                  <span>حریم خصوصی</span>
                 </Link>
               </li>
             </ul>
@@ -158,13 +162,10 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="mt-16 border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-xs text-gray-500">
-            &copy; {new Date().getFullYear()} گیفت کارت دات آی‌او. تمامی حقوق
-            محفوظ است.
+            &copy; {new Date().getFullYear()} نکست لایسنس. تمامی حقوق محفوظ است.
           </p>
           <div className="flex gap-6">
-            <span className="text-xs text-gray-400 cursor-not-allowed">
-              Design by You
-            </span>
+            {/* You can add extra bottom links here if needed */}
           </div>
         </div>
       </div>

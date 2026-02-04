@@ -18,7 +18,7 @@ export async function generateMetadata({ params }) {
   const { slug } = await params;
   const post = getPostBySlug(slug);
   return {
-    title: `${post.meta.title} | گیفت کارت`,
+    title: `${post.meta.title} | فروشگاه نکست لایسنس`,
     description: post.meta.description,
   };
 }
