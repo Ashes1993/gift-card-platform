@@ -49,10 +49,10 @@ export default async function shipmentCreatedHandler({
 
     // 4. Recipient
     // DEVELOPMENT MODE:
-    const emailToSend = "ashkaneslamii1993@gmail.com";
+    // const emailToSend = "ashkaneslamii1993@gmail.com";
 
     // PRODUCTION MODE (Uncomment later):
-    // const emailToSend = fulfillment.order.email;
+    const emailToSend = fulfillment.order.email;
 
     console.log(
       `[Email] 🚀 Sending Codes for Order #${fulfillment.order.display_id} to ${emailToSend}`,

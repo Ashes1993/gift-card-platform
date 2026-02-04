@@ -1,6 +1,6 @@
 import { SubscriberArgs, type SubscriberConfig } from "@medusajs/medusa";
 import { Resend } from "resend";
-import { EmailTemplates } from "../utils/email-templates"; // <--- Import Templates
+import { EmailTemplates } from "../utils/email-templates";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -30,8 +30,8 @@ export default async function orderPlacedHandler({
     if (!order) return;
 
     // 1. Recipient
-    const emailToSend = "ashkaneslamii1993@gmail.com";
-    // const emailToSend = order.email;
+    // const emailToSend = "ashkaneslamii1993@gmail.com";
+    const emailToSend = order.email;
 
     console.log(
       `[Email] 🧾 Sending Receipt for #${order.display_id} to ${emailToSend}`,
