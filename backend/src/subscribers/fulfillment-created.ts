@@ -3,6 +3,10 @@ import { Resend } from "resend";
 import { EmailTemplates } from "../utils/email-templates";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+const SENDER_EMAIL = "NextLicense Delivery <noreply@nextlicense.shop>";
+const SUPPORT_EMAIL = "support@nextlicense.shop";
+
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export default async function shipmentCreatedHandler({
@@ -11,48 +15,50 @@ export default async function shipmentCreatedHandler({
 }: SubscriberArgs<{ id: string }>) {
   const query = container.resolve("query");
 
-  // 1. SAFETY BUFFER
-  await sleep(1000);
+  // 1. Safety Buffer
+  await sleep(1500);
 
   try {
     // 2. Fetch Fulfillment Data
     const { data: fulfillments } = await query.graph({
       entity: "fulfillment",
-      fields: [
-        "*",
-        "labels.*", // Fetches tracking_number, tracking_url, etc.
-        "order.display_id",
-        "order.email",
-      ],
+      fields: ["*", "labels.*", "order.display_id", "order.email"],
       filters: { id: data.id },
     });
 
     const fulfillment: any = fulfillments[0];
-    if (!fulfillment || !fulfillment.order) return;
+
+    // TYPE FIX: Check for order AND email existence
+    if (!fulfillment || !fulfillment.order || !fulfillment.order.email) {
+      console.warn(
+        `[Email] ⚠️ Fulfillment ${data.id} has missing order data or email.`,
+      );
+      return;
+    }
 
     // 3. Extract Codes & Labels
     const labels = fulfillment.labels || [];
 
     const digitalItems = labels
       .map((l: any) => ({
-        // The Code
         code: l.tracking_number,
-
-        // FIX: Map 'tracking_url' to our Label
-        // We use tracking_url because that is the field available in the Admin UI
         label:
-          l.tracking_url && l.tracking_url !== "null" ? l.tracking_url : "",
+          l.tracking_url && l.tracking_url !== "null"
+            ? l.tracking_url
+            : "لایسنس دیجیتال",
       }))
       .filter((i: any) => i.code);
 
-    if (digitalItems.length === 0) return;
+    if (digitalItems.length === 0) {
+      console.log(
+        `[Email] ℹ️ No codes found in fulfillment ${data.id}, skipping email.`,
+      );
+      return;
+    }
 
     // 4. Recipient
-    // DEVELOPMENT MODE:
-    // const emailToSend = "ashkaneslamii1993@gmail.com";
-
-    // PRODUCTION MODE (Uncomment later):
-    const emailToSend = fulfillment.order.email;
+    // Now TypeScript knows this is a string
+    const emailToSend: string = fulfillment.order.email;
 
     console.log(
       `[Email] 🚀 Sending Codes for Order #${fulfillment.order.display_id} to ${emailToSend}`,
@@ -65,13 +71,14 @@ export default async function shipmentCreatedHandler({
     );
 
     await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev",
+      from: SENDER_EMAIL,
       to: [emailToSend],
+      replyTo: SUPPORT_EMAIL, // FIXED: Changed reply_to -> replyTo
       subject: `سفارش شما آماده است! #${fulfillment.order.display_id} 🚀`,
       html: emailHtml,
     });
   } catch (err) {
-    console.error("[Email] 💥 Error:", err);
+    console.error("[Email] 💥 Error sending fulfillment:", err);
   }
 }
 
