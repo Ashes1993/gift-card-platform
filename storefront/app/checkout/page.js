@@ -28,8 +28,10 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [cryptoLoading, setCryptoLoading] = useState(false);
   const [error, setError] = useState("");
+
   const [success, setSuccess] = useState(false);
   const [orderId, setOrderId] = useState(null);
+  const [displayId, setDisplayId] = useState(null); // New State for Short ID
 
   // Auto-fill email
   useEffect(() => {
@@ -38,7 +40,7 @@ export default function CheckoutPage() {
 
   // Empty State
   if (!cart || !cart.items?.length) {
-    if (success) return <SuccessView orderId={orderId} />;
+    if (success) return <SuccessView orderId={orderId} displayId={displayId} />;
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center space-y-4 text-center">
         <div className="h-24 w-24 bg-gray-50 rounded-full flex items-center justify-center mb-2">
@@ -79,6 +81,7 @@ export default function CheckoutPage() {
       if (!result.success) throw new Error(result.error);
 
       setOrderId(result.orderId);
+      setDisplayId(result.displayId); // Capture the short ID
       setSuccess(true);
       setCart(null);
       localStorage.removeItem("cart_id");
@@ -139,7 +142,6 @@ export default function CheckoutPage() {
   }
 
   // --- DYNAMIC TAX CALCULATION ---
-  // Calculates the percentage based on backend values to be consistent
   const taxPercentage =
     cart.subtotal > 0 ? Math.round((cart.tax_total / cart.subtotal) * 100) : 0;
 
@@ -284,10 +286,8 @@ export default function CheckoutPage() {
                 <span>{formatPrice(cart.subtotal, cart.currency_code)}</span>
               </div>
 
-              {/* TAX SECTION: Dynamic Label and Value */}
               {cart.tax_total > 0 && (
                 <div className="flex items-center justify-between text-sm text-red-600 font-medium">
-                  {/* Shows dynamic percentage if > 0, otherwise just title */}
                   <span>
                     مالیات بر ارزش افزوده
                     {taxPercentage > 0 && ` (${taxPercentage}٪)`}
@@ -312,7 +312,8 @@ export default function CheckoutPage() {
   );
 }
 
-function SuccessView({ orderId }) {
+// Updated Success View to accept displayId
+function SuccessView({ orderId, displayId }) {
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center text-center px-4 animate-in fade-in duration-700">
       <div className="rounded-full bg-green-50 p-6 mb-8 ring-8 ring-green-50/50">
@@ -322,8 +323,8 @@ function SuccessView({ orderId }) {
         خرید شما موفقیت‌آمیز بود!
       </h2>
       <p className="text-lg text-gray-500 mb-8 max-w-lg mx-auto">
-        کد گیفت کارت به ایمیل شما ارسال شد. همچنین می‌توانید جزئیات سفارش را در
-        پنل کاربری مشاهده کنید.
+        کد گیفت کارت پس از بررسی و تایید به ایمیل شما ارسال میشود. همچنین
+        می‌توانید جزئیات سفارش را در پنل کاربری مشاهده کنید.
       </p>
 
       <div className="bg-gray-50 rounded-2xl p-4 mb-10 border border-gray-100 inline-block min-w-[200px]">
@@ -331,7 +332,8 @@ function SuccessView({ orderId }) {
           شماره سفارش
         </span>
         <span className="font-mono text-2xl font-bold text-gray-900 tracking-widest">
-          #{orderId}
+          {/* SHOW SHORT ID (Fallback to long ID if short missing) */}#
+          {displayId || orderId}
         </span>
       </div>
 

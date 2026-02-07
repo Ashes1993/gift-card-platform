@@ -20,7 +20,6 @@ export async function placeOrder({ cartId, email, token }) {
     // --- STEP 1: PREPARE CART EMAIL & CONTEXT ---
     let emailToUpdate = email;
 
-    // If logged in, fetch authoritative email
     if (token) {
       try {
         const customerRes = await fetch(`${BASE_URL}/store/customers/me`, {
@@ -36,15 +35,13 @@ export async function placeOrder({ cartId, email, token }) {
       }
     }
 
-    // Update Cart: Email AND Country Code (Force tax calculation context)
-    // We explicitly set country_code to 'ir' (Iran) to ensure the 10% tax applies immediately
     const updateRes = await fetch(`${BASE_URL}/store/carts/${cartId}`, {
       method: "POST",
       headers,
       body: JSON.stringify({
         email: emailToUpdate,
-        region_id: undefined, // Keep existing region
-        country_code: "ir", // Force Iran context for VAT
+        region_id: undefined,
+        country_code: "ir",
       }),
     });
 
@@ -117,10 +114,15 @@ export async function placeOrder({ cartId, email, token }) {
       throw new Error(completeData.message || "Order completion failed");
     }
 
+    // FIX: Extract both ID (internal) and Display ID (User friendly)
+    // Medusa returns { type: "order", order: {...} }
+    const orderObj =
+      completeData.type === "order" ? completeData.order : completeData;
+
     return {
       success: true,
-      orderId:
-        completeData.type === "order" ? completeData.order.id : completeData.id,
+      orderId: orderObj.id, // order_01... (Internal)
+      displayId: orderObj.display_id, // 1001 (User Friendly)
     };
   } catch (error) {
     console.error("[Checkout] 💥 Error:", error);
