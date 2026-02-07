@@ -138,6 +138,11 @@ export default function CheckoutPage() {
     }
   }
 
+  // --- DYNAMIC TAX CALCULATION ---
+  // Calculates the percentage based on backend values to be consistent
+  const taxPercentage =
+    cart.subtotal > 0 ? Math.round((cart.tax_total / cart.subtotal) * 100) : 0;
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="flex items-center gap-3 mb-8">
@@ -236,7 +241,6 @@ export default function CheckoutPage() {
             </h2>
             <ul className="space-y-4">
               {cart.items.map((item) => {
-                // Metadata Strategy: Get the $10 label
                 const variantLabel =
                   item.metadata?.title ||
                   item.variant?.title
@@ -280,10 +284,14 @@ export default function CheckoutPage() {
                 <span>{formatPrice(cart.subtotal, cart.currency_code)}</span>
               </div>
 
-              {/* TAX SECTION: Only shows if Medusa Region has Tax configured */}
+              {/* TAX SECTION: Dynamic Label and Value */}
               {cart.tax_total > 0 && (
                 <div className="flex items-center justify-between text-sm text-red-600 font-medium">
-                  <span>مالیات (۹٪)</span>
+                  {/* Shows dynamic percentage if > 0, otherwise just title */}
+                  <span>
+                    مالیات بر ارزش افزوده
+                    {taxPercentage > 0 && ` (${taxPercentage}٪)`}
+                  </span>
                   <span>{formatPrice(cart.tax_total, cart.currency_code)}</span>
                 </div>
               )}
@@ -295,8 +303,7 @@ export default function CheckoutPage() {
             </div>
 
             <p className="mt-6 text-[10px] text-gray-400 text-center leading-tight">
-              با تکمیل خرید، قوانین و مقررات فروشگاه گیفت کارت را می‌پذیرید.
-              کدها بلافاصله پس از پرداخت ارسال می‌شوند.
+              با تکمیل خرید، قوانین و مقررات فروشگاه نکست لایسنس را می‌پذیرید.
             </p>
           </div>
         </div>

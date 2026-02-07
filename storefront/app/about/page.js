@@ -1,4 +1,4 @@
-import { ShieldCheck, Zap, Headset, Users } from "lucide-react";
+import { ShieldCheck, Zap, Headset } from "lucide-react";
 
 export const metadata = {
   title: "درباره ما | نکست لایسنس",

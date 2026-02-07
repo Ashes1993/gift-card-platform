@@ -17,10 +17,10 @@ export async function placeOrder({ cartId, email, token }) {
   console.log(`[Checkout] 🚀 STARTING for Cart: ${cartId}`);
 
   try {
-    // --- STEP 1: LINK EMAIL & CUSTOMER ---
+    // --- STEP 1: PREPARE CART EMAIL & CONTEXT ---
     let emailToUpdate = email;
 
-    // If logged in, fetch the authoritative email from profile
+    // If logged in, fetch authoritative email
     if (token) {
       try {
         const customerRes = await fetch(`${BASE_URL}/store/customers/me`, {
@@ -36,18 +36,22 @@ export async function placeOrder({ cartId, email, token }) {
       }
     }
 
-    // Update Cart with Email
+    // Update Cart: Email AND Country Code (Force tax calculation context)
+    // We explicitly set country_code to 'ir' (Iran) to ensure the 10% tax applies immediately
     const updateRes = await fetch(`${BASE_URL}/store/carts/${cartId}`, {
       method: "POST",
       headers,
-      body: JSON.stringify({ email: emailToUpdate }),
+      body: JSON.stringify({
+        email: emailToUpdate,
+        region_id: undefined, // Keep existing region
+        country_code: "ir", // Force Iran context for VAT
+      }),
     });
 
     if (!updateRes.ok)
       console.warn("⚠️ Cart Update Warning:", await updateRes.text());
 
-    // --- STEP 2: SHIPPING (Digital Delivery) ---
-    // Fetch available options for this region/cart
+    // --- STEP 2: SHIPPING ---
     const optionsRes = await fetch(
       `${BASE_URL}/store/shipping-options?cart_id=${cartId}`,
       { headers, cache: "no-store" },
@@ -61,7 +65,6 @@ export async function placeOrder({ cartId, email, token }) {
       );
     }
 
-    // Select the first option (Usually "Instant Delivery")
     const shippingRes = await fetch(
       `${BASE_URL}/store/carts/${cartId}/shipping-methods`,
       {
@@ -74,7 +77,6 @@ export async function placeOrder({ cartId, email, token }) {
     if (!shippingRes.ok) throw new Error("Failed to set shipping method.");
 
     // --- STEP 3: PAYMENT SESSIONS ---
-    // 1. Create Payment Collection
     const collectionRes = await fetch(`${BASE_URL}/store/payment-collections`, {
       method: "POST",
       headers,
@@ -87,7 +89,6 @@ export async function placeOrder({ cartId, email, token }) {
     const collectionData = await collectionRes.json();
     const collectionId = collectionData.payment_collection?.id;
 
-    // 2. Initialize "System Default" (Manual/Simulation) Session
     const sessionRes = await fetch(
       `${BASE_URL}/store/payment-collections/${collectionId}/payment-sessions`,
       {
