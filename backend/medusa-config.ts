@@ -15,4 +15,8 @@ export default defineConfig({
   },
   // FIX: Load it as a legacy plugin, NOT inside 'modules'
   plugins: ["medusa-payment-manual"],
+  admin: {
+    disable: false,
+    path: "/app",
+  },
 });
