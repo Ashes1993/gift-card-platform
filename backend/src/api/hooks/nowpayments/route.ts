@@ -1,82 +1,76 @@
-import { MedusaError } from "@medusajs/utils";
-// 1. Import dns to force IPv4
-import dns from "dns";
+import { MedusaRequest, MedusaResponse } from "@medusajs/framework";
+import { NowPaymentsService } from "../../../services/nowpayments";
+import { completeCartWorkflow } from "@medusajs/medusa/core-flows";
 
-// Force Node to look for IPv4 addresses first (Fixes the Timeout issue)
-dns.setDefaultResultOrder("ipv4first");
+export async function POST(req: MedusaRequest, res: MedusaResponse) {
+  // 1. Get Data from NOWPayments
+  const signature = req.headers["x-nowpayments-sig"] as string;
+  const body = req.body as any;
 
-export class NowPaymentsService {
-  private apiKey: string;
-  private apiUrl: string;
+  console.log(`[Webhook] 📩 Received NOWPayments IPN:`, body.payment_status);
 
-  constructor() {
-    this.apiKey = process.env.NOWPAYMENTS_API_KEY || "";
-    // 2. HARDCODE the URL temporarily to ensure it's correct
-    this.apiUrl = "https://api.nowpayments.io/v1/";
+  // 2. Verify Security
+  const service = new NowPaymentsService();
+  const isValid = service.verifySignature(signature, body);
+
+  if (!isValid) {
+    return res.status(401).json({ message: "Invalid Signature" });
   }
 
-  async createInvoice(amount: number, currency: string, orderId: string) {
-    const backendUrl =
-      process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
+  // 3. Check Status
+  if (body.payment_status !== "finished") {
+    console.log(
+      `[Webhook] ⏳ Payment status is ${body.payment_status}. Waiting...`,
+    );
+    return res.json({ received: true });
+  }
 
-    // 3. Log the URL we are hitting (For Debugging)
-    console.log(`[NOWPayments] 🚀 Contacting: ${this.apiUrl}invoice`);
+  // 4. Resolve the Cart ID
+  const cartId = body.order_id;
 
-    const body = {
-      price_amount: amount,
-      price_currency: currency,
-      pay_currency: "usdtbsc",
-      order_id: orderId,
-      order_description: `Order #${orderId}`,
-      ipn_callback_url: `${backendUrl}/hooks/nowpayments`,
-      success_url: `${
-        process.env.STORE_URL || "http://localhost:8000"
-      }/order/confirmed/${orderId}`,
-      cancel_url: `${
-        process.env.STORE_URL || "http://localhost:8000"
-      }/checkout?error=payment_cancelled`,
-    };
+  if (!cartId) {
+    return res.status(400).json({ message: "No Order ID in webhook" });
+  }
 
-    try {
-      // 4. Increase Timeout to 15s (Default is 10s)
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
+  try {
+    const query = req.scope.resolve("query");
 
-      const response = await fetch(`${this.apiUrl}invoice`, {
-        method: "POST",
-        headers: {
-          "x-api-key": this.apiKey,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-        signal: controller.signal,
-      });
+    // Check if this cart is already an Order (Idempotency)
+    const { data: existingOrders } = await query.graph({
+      entity: "order",
+      fields: ["id"],
+      // FIX 2: Cast filters to 'any' to bypass strict metadata typing
+      filters: {
+        metadata: { original_cart_id: cartId },
+      } as any,
+    });
 
-      clearTimeout(timeoutId);
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.error("NOWPayments Error Response:", data);
-        throw new MedusaError(
-          MedusaError.Types.UNEXPECTED_STATE,
-          `NOWPayments API Failed: ${JSON.stringify(data)}`
-        );
-      }
-
-      return data;
-    } catch (error: any) {
-      console.error("[NOWPayments] 💥 Network Error:", error);
-      if (error.cause) console.error("[NOWPayments] Cause:", error.cause);
-
-      throw new MedusaError(
-        MedusaError.Types.UNEXPECTED_STATE,
-        "Failed to connect to NOWPayments. Check your internet connection."
+    if (existingOrders && existingOrders.length > 0) {
+      console.log(
+        `[Webhook] ✅ Order already exists for Cart ${cartId}. Skipping.`,
       );
+      return res.json({ message: "Already processed" });
     }
-  }
 
-  verifySignature(signature: string, body: any): boolean {
-    return true;
+    // 5. COMPLETE THE CART
+    console.log(`[Webhook] 🛒 Completing Cart ${cartId}...`);
+
+    const { result, errors } = await completeCartWorkflow(req.scope).run({
+      input: {
+        id: cartId,
+      },
+    });
+
+    if (errors && errors.length > 0) {
+      throw new Error(errors[0].error?.message || "Workflow failed");
+    }
+
+    console.log(`[Webhook] 🎉 Order Placed Successfully: ${result.id}`);
+    return res.json({ success: true, order_id: result.id });
+  } catch (error: any) {
+    console.error("[Webhook] 💥 Processing Error:", error.message);
+    return res
+      .status(200)
+      .json({ message: "Error processing", error: error.message });
   }
 }

@@ -194,7 +194,7 @@ export default function CheckoutPage() {
             )}
 
             <div className="space-y-4">
-              <button
+              {/* <button
                 onClick={handleCryptoPayment}
                 disabled={loading || cryptoLoading}
                 className="group flex w-full items-center justify-between rounded-xl bg-[#00D54B] px-6 py-5 text-white shadow-md hover:bg-[#00c040] hover:shadow-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed"
@@ -214,7 +214,7 @@ export default function CheckoutPage() {
                   یا روش جایگزین
                 </span>
                 <div className="grow border-t border-gray-200"></div>
-              </div>
+              </div> */}
 
               <button
                 onClick={handlePlaceOrder}
