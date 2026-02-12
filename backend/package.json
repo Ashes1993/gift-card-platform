@@ -13,7 +13,7 @@
     "medusa"
   ],
   "scripts": {
-    "build": "medusa build && mkdir -p public/admin && cp -r .medusa/client/* public/admin/",
+    "build": "medusa build",
     "seed": "medusa exec ./src/scripts/seed.ts",
     "start": "medusa start",
     "dev": "medusa develop",
@@ -24,6 +24,7 @@
   "dependencies": {
     "@medusajs/admin-sdk": "2.12.1",
     "@medusajs/cli": "2.12.1",
+    "@medusajs/file-local": "^2.12.1",
     "@medusajs/framework": "2.12.1",
     "@medusajs/medusa": "2.12.1",
     "medusa-payment-manual": "^1.0.25",
