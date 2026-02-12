@@ -4,6 +4,40 @@ const BASE_URL =
   process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://127.0.0.1:9000";
 const API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
 
+// --- 0. The Sanitizer (Fixes Database "localhost" Errors) ---
+/**
+ * Recursively walks through the data object.
+ * If it finds a string containing 'http://localhost:9000',
+ * it replaces it with the correct Production BASE_URL.
+ */
+function fixLocalhostUrls(data) {
+  if (!data) return data;
+
+  // 1. If it's a string, check and fix
+  if (typeof data === "string") {
+    if (data.includes("http://localhost:9000")) {
+      return data.replace("http://localhost:9000", BASE_URL);
+    }
+    return data;
+  }
+
+  // 2. If it's an array, fix every item
+  if (Array.isArray(data)) {
+    return data.map(fixLocalhostUrls);
+  }
+
+  // 3. If it's an object, fix every value (recursive)
+  if (typeof data === "object") {
+    const newData = {};
+    Object.keys(data).forEach((key) => {
+      newData[key] = fixLocalhostUrls(data[key]);
+    });
+    return newData;
+  }
+
+  return data;
+}
+
 // --- 1. Server-Side Fetcher (Next.js Friendly) ---
 /**
  * Generic fetcher for Medusa Store API using Native Fetch
@@ -31,7 +65,10 @@ async function medusaFetch(endpoint, options = {}) {
       throw new Error(`Medusa API Error: ${res.status} ${res.statusText}`);
     }
 
-    return await res.json();
+    const body = await res.json();
+
+    // INTERCEPTION: Clean the data before returning it to the app
+    return fixLocalhostUrls(body);
   } catch (error) {
     console.error(`Fetch error for ${endpoint}:`, error);
     return null;
