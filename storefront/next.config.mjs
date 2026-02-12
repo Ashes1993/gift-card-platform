@@ -31,6 +31,8 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "nextlicense.shop",
+        port: "",
+        pathname: "/**",
       },
       {
         protocol: "https",
@@ -41,6 +43,7 @@ const nextConfig = {
         hostname: "medusa-server-testing.s3.amazonaws.com",
       },
     ],
+    domains: ["nextlicense.shop", "localhost", "127.0.0.1"],
   },
 };
 
