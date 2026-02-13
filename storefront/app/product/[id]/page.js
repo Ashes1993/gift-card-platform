@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import { ShieldCheck, Star, CheckCircle2 } from "lucide-react"; // Removed Zap icon
+import { ShieldCheck, Star, CheckCircle2 } from "lucide-react";
 import VariantSelector from "@/components/product/variant-selector";
 import ProductPurchaseCard from "@/components/product/product-purchase-card";
 
@@ -19,7 +19,23 @@ async function fetchProduct(handle) {
       },
     );
     const data = await res.json();
-    return data.products?.[0];
+    const product = data.products?.[0];
+
+    // --- URL SANITIZER FIX ---
+    // Intercept the thumbnail and replace the hardcoded "localhost" with the real domain
+    if (
+      product &&
+      product.thumbnail &&
+      product.thumbnail.includes("http://localhost:9000")
+    ) {
+      // Use the actual public domain for the replacement, not the potentially internal baseUrl
+      product.thumbnail = product.thumbnail.replace(
+        "http://localhost:9000",
+        "https://nextlicense.shop",
+      );
+    }
+
+    return product;
   } catch (e) {
     return null;
   }
@@ -68,6 +84,7 @@ export default async function ProductPage({ params, searchParams }) {
   const activeVariant =
     sortedVariants.find((v) => v.id === activeVariantId) || sortedVariants[0];
 
+  // We still keep this check in case of local development
   const isLocalImage =
     product.thumbnail?.includes("localhost") ||
     product.thumbnail?.includes("127.0.0.1");
@@ -94,8 +111,6 @@ export default async function ProductPage({ params, searchParams }) {
                   priority
                 />
               )}
-
-              {/* OPTIMIZATION 2: Removed the "Instant Delivery" (Zap) Badge */}
             </div>
 
             {/* Trust Badges */}

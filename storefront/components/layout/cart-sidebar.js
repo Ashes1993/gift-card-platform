@@ -69,9 +69,24 @@ export function CartSidebar() {
             <div className="flex-1 overflow-y-auto px-6 py-4">
               <ul className="space-y-6">
                 {cart?.items?.map((item) => {
+                  // --- URL SANITIZER FIX ---
+                  // Grab the thumbnail and clean it if it contains localhost
+                  let cleanThumbnail = item.thumbnail;
+                  if (
+                    cleanThumbnail &&
+                    cleanThumbnail.includes("http://localhost:9000")
+                  ) {
+                    cleanThumbnail = cleanThumbnail.replace(
+                      "http://localhost:9000",
+                      // Use environment variable if available, fallback to hardcoded domain
+                      process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL ||
+                        "https://nextlicense.shop",
+                    );
+                  }
+
                   const isLocal =
-                    item.thumbnail?.includes("localhost") ||
-                    item.thumbnail?.includes("127.0.0.1");
+                    cleanThumbnail?.includes("localhost") ||
+                    cleanThumbnail?.includes("127.0.0.1");
 
                   // -----------------------------------------------------------
                   // FIX: Prioritize Metadata (The Strategy we agreed on)
@@ -102,7 +117,7 @@ export function CartSidebar() {
                       <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-gray-100 bg-gray-50">
                         <Image
                           src={
-                            item.thumbnail ||
+                            cleanThumbnail ||
                             "https://dummyimage.com/100x100/eee/aaa"
                           }
                           alt={item.title}
