@@ -32,7 +32,7 @@ const formatPrice = (amount, currencyCode) => {
 };
 
 export default function TrendingGrid({ items }) {
-  if (items.length === 0) {
+  if (!items || items.length === 0) {
     return (
       <div className="col-span-4 flex flex-col items-center justify-center py-16 text-center bg-white rounded-2xl border border-dashed border-gray-300">
         <p className="text-gray-500 font-medium">محصولی برای نمایش یافت نشد.</p>
@@ -59,22 +59,13 @@ export default function TrendingGrid({ items }) {
           >
             {/* Image Section */}
             <div className="relative aspect-[4/3] bg-gray-50 overflow-hidden">
-              <div className="absolute top-3 right-3 z-10 rounded-full bg-red-500 px-2.5 py-1 text-[10px] font-bold text-white shadow-sm">
-                فروش ویژه
-              </div>
-
               <Image
                 src={item.thumbnail || "https://dummyimage.com/400x400/eee/aaa"}
                 alt={item.title}
                 fill
                 className="object-contain p-6 transition-transform duration-500 group-hover:scale-105"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                unoptimized={
-                  item.thumbnail?.includes("localhost") ||
-                  item.thumbnail?.includes("127.0.0.1")
-                }
               />
-
               <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/5" />
             </div>
 
@@ -93,9 +84,7 @@ export default function TrendingGrid({ items }) {
 
               <div className="mt-auto pt-4 flex items-center justify-between border-t border-gray-50">
                 <div className="flex flex-col">
-                  <span className="text-xs text-gray-400 line-through decoration-red-400">
-                    {formatPrice(item.originalPrice, item.currency)}
-                  </span>
+                  {/* The original price logic and strikethrough have been completely removed */}
                   <span className="text-lg font-black text-gray-900">
                     {formatPrice(item.price, item.currency)}
                   </span>

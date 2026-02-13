@@ -3,8 +3,6 @@ const nextConfig = {
   /* config options here */
   reactCompiler: true,
   images: {
-    loader: "custom",
-    loaderFile: "./lib/image-loader.js",
     unoptimized: true,
     remotePatterns: [
       {

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import TrendingGrid from "./trending-grid"; // Import the client component
+import TrendingGrid from "./trending-grid";
 
 // Base URL for Server Component
 const BASE_URL =
@@ -17,14 +17,15 @@ async function getTrendingItems() {
   }
 
   try {
-    const url = `${BASE_URL}/store/products?fields=*variants,*variants.prices&limit=4`;
+    const url = `${BASE_URL}/store/products?fields=*variants,*variants.prices,*title,*thumbnail,*handle&limit=4`;
 
     const res = await fetch(url, {
       headers: {
         "Content-Type": "application/json",
         "x-publishable-api-key": API_KEY,
       },
-      next: { revalidate: 30 },
+      // Revalidate every hour to keep the homepage fast and static-friendly
+      next: { revalidate: 3600 },
     });
 
     if (!res.ok) {
@@ -37,10 +38,18 @@ async function getTrendingItems() {
     }
 
     const data = await res.json();
-
     const trendingItems = [];
 
     (data.products || []).forEach((product) => {
+      // Inline URL cleaner for absolute safety
+      let cleanThumbnail = product.thumbnail;
+      if (cleanThumbnail && cleanThumbnail.includes("http://localhost:9000")) {
+        cleanThumbnail = cleanThumbnail.replace(
+          "http://localhost:9000",
+          "https://nextlicense.shop",
+        );
+      }
+
       const topVariants = product.variants?.slice(0, 2) || [];
 
       topVariants.forEach((variant) => {
@@ -56,10 +65,9 @@ async function getTrendingItems() {
             handle: product.handle,
             title: product.title,
             variantTitle: variant.title,
-            thumbnail: product.thumbnail,
+            thumbnail: cleanThumbnail,
             price: displayPrice.amount,
             currency: displayPrice.currency_code,
-            originalPrice: displayPrice.amount * 1.1,
           });
         }
       });
