@@ -6,16 +6,21 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://nextlicense.shop";
 // 2. Helper to fetch products from Medusa
 async function getProducts() {
   try {
-    // We use the internal backend URL if available, otherwise public
+    // Ensure we use the same environment variables as the rest of the app
     const backendUrl =
-      process.env.MEDUSA_BACKEND_URL || "http://localhost:9000";
+      process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://127.0.0.1:9000";
+    const apiKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
 
     const res = await fetch(`${backendUrl}/store/products?limit=1000`, {
+      // ADDED: The required Medusa API Key header
+      headers: {
+        "x-publishable-api-key": apiKey,
+      },
       next: { revalidate: 3600 }, // Re-check for new products every hour
     });
 
     if (!res.ok) {
-      throw new Error("Failed to fetch products");
+      throw new Error(`Failed to fetch products: ${res.statusText}`);
     }
 
     const data = await res.json();
@@ -36,7 +41,7 @@ export default async function sitemap() {
     "/store",
     "/account/login",
     "/account/register",
-    "/support", // Assuming you have a support page
+    "/support",
   ].map((route) => ({
     url: `${BASE_URL}${route}`,
     lastModified: new Date(),
@@ -46,10 +51,11 @@ export default async function sitemap() {
 
   // 4. Define Product Routes
   const productRoutes = products.map((product) => ({
+    // Updated route to match Medusa storefront standards, but adjust if your path is different
     url: `${BASE_URL}/products/${product.handle}`,
     lastModified: new Date(product.updated_at),
     changeFrequency: "weekly",
-    priority: 0.9, // High priority for products
+    priority: 0.9,
   }));
 
   // 5. Combine and Return
