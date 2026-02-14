@@ -19,7 +19,8 @@ export async function placeOrder({ cartId, email, token }) {
   try {
     // --- STEP 1: PREPARE CART EMAIL & CONTEXT ---
     let emailToUpdate = email;
-    let customerIdToUpdate = undefined; // <-- FIX: Added variable to hold the ID
+    let firstName = "کاربر"; // Fallback "User"
+    let lastName = "مهمان"; // Fallback "Guest"
 
     if (token) {
       try {
@@ -29,24 +30,27 @@ export async function placeOrder({ cartId, email, token }) {
         });
         const customerData = await customerRes.json();
 
-        // FIX: Extract BOTH email and id from the verified token
         if (customerData.customer) {
           emailToUpdate = customerData.customer.email || emailToUpdate;
-          customerIdToUpdate = customerData.customer.id;
+          firstName = customerData.customer.first_name || firstName;
+          lastName = customerData.customer.last_name || lastName;
         }
       } catch (e) {
         console.warn("Could not fetch customer profile, using form email.");
       }
     }
 
+    // FIX: Move all address data securely inside the shipping_address object
     const updateRes = await fetch(`${BASE_URL}/store/carts/${cartId}`, {
       method: "POST",
       headers,
       body: JSON.stringify({
         email: emailToUpdate,
-        customer_id: customerIdToUpdate, // <-- FIX: Explicitly bind the user to the cart
-        region_id: undefined,
-        country_code: "ir",
+        shipping_address: {
+          first_name: firstName,
+          last_name: lastName,
+          country_code: "ir",
+        },
       }),
     });
 
