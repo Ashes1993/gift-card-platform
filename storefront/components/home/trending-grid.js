@@ -49,7 +49,8 @@ export default function TrendingGrid({ items }) {
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, margin: "-100px" }}
-      className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
+      // FIX: Changed mobile to 2 columns (grid-cols-2) and reduced the mobile gap (gap-3)
+      className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4"
     >
       {items.map((item) => (
         <motion.div key={item.id} variants={itemAnim}>
@@ -58,40 +59,45 @@ export default function TrendingGrid({ items }) {
             className="group relative flex flex-col overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-sm transition-all hover:shadow-xl hover:border-blue-100 hover:-translate-y-1"
           >
             {/* Image Section */}
-            <div className="relative aspect-[4/3] bg-gray-50 overflow-hidden">
+            {/* FIX: aspect-square on mobile makes it compact, aspect-[4/3] on desktop */}
+            <div className="relative aspect-square sm:aspect-[4/3] bg-gray-50 overflow-hidden">
               <Image
                 src={item.thumbnail || "https://dummyimage.com/400x400/eee/aaa"}
                 alt={item.title}
                 fill
-                className="object-contain p-6 transition-transform duration-500 group-hover:scale-105"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                // FIX: Reduced padding on mobile (p-3), restored on desktop (sm:p-6)
+                className="object-contain p-3 sm:p-6 transition-transform duration-500 group-hover:scale-105"
+                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 50vw, 25vw"
               />
               <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/5" />
             </div>
 
             {/* Content Section */}
-            <div className="flex flex-1 flex-col p-5">
-              <div className="mb-2 flex items-center gap-2">
-                <Tag className="h-3.5 w-3.5 text-blue-500" />
-                <span className="text-xs font-medium text-blue-500">
+            {/* FIX: Reduced padding on mobile (p-3), restored on desktop (sm:p-5) */}
+            <div className="flex flex-1 flex-col p-3 sm:p-5">
+              <div className="mb-1 sm:mb-2 flex items-center gap-1 sm:gap-2">
+                <Tag className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-blue-500" />
+                <span className="text-[10px] sm:text-xs font-medium text-blue-500 line-clamp-1">
                   {item.title}
                 </span>
               </div>
 
-              <h3 className="text-lg font-bold text-gray-900 mb-1">
+              {/* FIX: Smaller title on mobile */}
+              <h3 className="text-sm sm:text-lg font-bold text-gray-900 mb-1 line-clamp-1">
                 {item.variantTitle}
               </h3>
 
-              <div className="mt-auto pt-4 flex items-center justify-between border-t border-gray-50">
+              <div className="mt-auto pt-3 sm:pt-4 flex items-center justify-between border-t border-gray-50">
                 <div className="flex flex-col">
-                  {/* The original price logic and strikethrough have been completely removed */}
-                  <span className="text-lg font-black text-gray-900">
+                  {/* FIX: Smaller price on mobile */}
+                  <span className="text-sm sm:text-lg font-black text-gray-900">
                     {formatPrice(item.price, item.currency)}
                   </span>
                 </div>
 
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50 text-gray-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
-                  <ShoppingBag className="h-5 w-5" />
+                {/* FIX: Smaller button and icon on mobile */}
+                <div className="flex h-7 w-7 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-gray-50 text-gray-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
+                  <ShoppingBag className="h-3.5 w-3.5 sm:h-5 sm:w-5" />
                 </div>
               </div>
             </div>
