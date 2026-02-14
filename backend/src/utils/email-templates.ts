@@ -68,7 +68,7 @@ export const EmailTemplates = {
 
             <div style="background: #fafafa; padding: 20px; text-align: center; border-top: 1px solid #eaeaea;">
               <p style="font-size: 12px; color: #999; margin: 0;">
-                &copy; ${new Date().getFullYear()} فروشگاه گیفت کارت. تمامی حقوق محفوظ است&rlm;.
+                &copy; ${new Date().getFullYear()} فروشگاه نکست لایسنس. تمامی حقوق محفوظ است&rlm;.
               </p>
             </div>
           </div>
@@ -162,7 +162,7 @@ export const EmailTemplates = {
 
             <div style="background: #fafafa; padding: 20px; text-align: center; border-top: 1px solid #eaeaea;">
               <p style="font-size: 12px; color: #999; margin: 0;">
-                &copy; ${new Date().getFullYear()} فروشگاه گیفت کارت. تمامی حقوق محفوظ است&rlm;.
+                &copy; ${new Date().getFullYear()} فروشگاه نکست لایسنس. تمامی حقوق محفوظ است&rlm;.
               </p>
             </div>
           </div>

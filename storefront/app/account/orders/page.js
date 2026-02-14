@@ -163,15 +163,30 @@ export default function OrdersPage() {
                 <div className="p-6">
                   <ul className="divide-y divide-gray-50">
                     {order.items?.map((item) => {
+                      // --- URL SANITIZER FIX ---
+                      let cleanThumbnail = item.thumbnail;
+                      if (
+                        cleanThumbnail &&
+                        cleanThumbnail.includes("http://localhost:9000")
+                      ) {
+                        cleanThumbnail = cleanThumbnail.replace(
+                          "http://localhost:9000",
+                          process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL ||
+                            "https://nextlicense.shop",
+                        );
+                      }
+
                       // METADATA STRATEGY: Get the "$10" label
                       const variantLabel =
                         item.metadata?.title ||
                         item.variant?.title
                           ?.replace("Gift Card", "")
-                          .replace("Card", "")
-                          .trim();
+                          ?.replace("Card", "")
+                          ?.trim();
 
-                      const isLocal = item.thumbnail?.includes("localhost");
+                      const isLocal =
+                        cleanThumbnail?.includes("localhost") ||
+                        cleanThumbnail?.includes("127.0.0.1");
 
                       return (
                         <li
@@ -183,7 +198,7 @@ export default function OrdersPage() {
                             <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-gray-100 bg-gray-50">
                               <Image
                                 src={
-                                  item.thumbnail ||
+                                  cleanThumbnail ||
                                   "https://dummyimage.com/100x100/eee/aaa"
                                 }
                                 alt={item.title}
