@@ -19,6 +19,7 @@ export async function placeOrder({ cartId, email, token }) {
   try {
     // --- STEP 1: PREPARE CART EMAIL & CONTEXT ---
     let emailToUpdate = email;
+    let customerIdToUpdate = undefined; // <-- FIX: Added variable to hold the ID
 
     if (token) {
       try {
@@ -27,8 +28,11 @@ export async function placeOrder({ cartId, email, token }) {
           cache: "no-store",
         });
         const customerData = await customerRes.json();
-        if (customerData.customer?.email) {
-          emailToUpdate = customerData.customer.email;
+
+        // FIX: Extract BOTH email and id from the verified token
+        if (customerData.customer) {
+          emailToUpdate = customerData.customer.email || emailToUpdate;
+          customerIdToUpdate = customerData.customer.id;
         }
       } catch (e) {
         console.warn("Could not fetch customer profile, using form email.");
@@ -40,6 +44,7 @@ export async function placeOrder({ cartId, email, token }) {
       headers,
       body: JSON.stringify({
         email: emailToUpdate,
+        customer_id: customerIdToUpdate, // <-- FIX: Explicitly bind the user to the cart
         region_id: undefined,
         country_code: "ir",
       }),
@@ -114,15 +119,13 @@ export async function placeOrder({ cartId, email, token }) {
       throw new Error(completeData.message || "Order completion failed");
     }
 
-    // FIX: Extract both ID (internal) and Display ID (User friendly)
-    // Medusa returns { type: "order", order: {...} }
     const orderObj =
       completeData.type === "order" ? completeData.order : completeData;
 
     return {
       success: true,
-      orderId: orderObj.id, // order_01... (Internal)
-      displayId: orderObj.display_id, // 1001 (User Friendly)
+      orderId: orderObj.id,
+      displayId: orderObj.display_id,
     };
   } catch (error) {
     console.error("[Checkout] 💥 Error:", error);
