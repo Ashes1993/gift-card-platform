@@ -10,15 +10,11 @@ import {
   CheckCircle,
   AlertCircle,
   CreditCard,
-  Bitcoin,
   ShoppingBag,
   Receipt,
 } from "lucide-react";
 import { placeOrder } from "./actions";
-
-const BASE_URL =
-  process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://127.0.0.1:9000";
-const API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
+import CryptoSelector from "@/components/checkout/crypto-selector";
 
 export default function CheckoutPage() {
   const { cart, setCart } = useCart();
@@ -26,12 +22,11 @@ export default function CheckoutPage() {
 
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [cryptoLoading, setCryptoLoading] = useState(false);
   const [error, setError] = useState("");
 
   const [success, setSuccess] = useState(false);
   const [orderId, setOrderId] = useState(null);
-  const [displayId, setDisplayId] = useState(null); // New State for Short ID
+  const [displayId, setDisplayId] = useState(null);
 
   // Auto-fill email
   useEffect(() => {
@@ -59,7 +54,7 @@ export default function CheckoutPage() {
     );
   }
 
-  // --- 1. SIMULATION PAYMENT (Manual) ---
+  // --- SIMULATION PAYMENT (Manual Fallback) ---
   async function handlePlaceOrder(e) {
     e.preventDefault();
     if (!email && !customer) {
@@ -81,7 +76,7 @@ export default function CheckoutPage() {
       if (!result.success) throw new Error(result.error);
 
       setOrderId(result.orderId);
-      setDisplayId(result.displayId); // Capture the short ID
+      setDisplayId(result.displayId);
       setSuccess(true);
       setCart(null);
       localStorage.removeItem("cart_id");
@@ -90,54 +85,6 @@ export default function CheckoutPage() {
       setError(err.message || "خطایی رخ داد. لطفا مجددا تلاش کنید.");
     } finally {
       setLoading(false);
-    }
-  }
-
-  // --- 2. CRYPTO PAYMENT ---
-  async function handleCryptoPayment(e) {
-    e.preventDefault();
-    if (!email && !customer) {
-      setError("لطفاً ابتدا ایمیل خود را وارد کنید.");
-      return;
-    }
-
-    setCryptoLoading(true);
-    setError("");
-
-    try {
-      // Step A: Link Email if Guest
-      if (!customer) {
-        await fetch(`${BASE_URL}/store/carts/${cart.id}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-publishable-api-key": API_KEY,
-          },
-          body: JSON.stringify({ email }),
-        });
-      }
-
-      // Step B: Get Crypto Link
-      const res = await fetch(`${BASE_URL}/store/payment/crypto`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-publishable-api-key": API_KEY,
-        },
-        body: JSON.stringify({ cart_id: cart.id }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || "خطا در ایجاد درگاه پرداخت.");
-      }
-
-      // Step C: Redirect
-      window.location.href = data.payment_url;
-    } catch (err) {
-      console.error(err);
-      setError(err.message || "پرداخت ناموفق بود.");
-      setCryptoLoading(false);
     }
   }
 
@@ -155,7 +102,7 @@ export default function CheckoutPage() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-12">
         {/* --- RIGHT COLUMN: Checkout Form (lg:col-span-7) --- */}
         <div className="lg:col-span-7 order-2 lg:order-1">
-          <form className="space-y-8">
+          <form className="space-y-6">
             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
               <h3 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-100 pb-2">
                 اطلاعات تماس
@@ -186,6 +133,7 @@ export default function CheckoutPage() {
               </div>
             </div>
 
+            {/* Error Message Display */}
             {error && (
               <div className="rounded-xl bg-red-50 p-4 border border-red-100 flex items-start gap-3">
                 <AlertCircle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
@@ -193,32 +141,27 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            <div className="space-y-4">
-              {/* <button
-                onClick={handleCryptoPayment}
-                disabled={loading || cryptoLoading}
-                className="group flex w-full items-center justify-between rounded-xl bg-[#00D54B] px-6 py-5 text-white shadow-md hover:bg-[#00c040] hover:shadow-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed"
-              >
-                <div className="flex items-center gap-3">
-                  <Bitcoin className="h-6 w-6" />
-                  <span className="text-lg font-bold">
-                    پرداخت با ارز دیجیتال
-                  </span>
-                </div>
-                {cryptoLoading && <Loader2 className="h-5 w-5 animate-spin" />}
-              </button>
+            {/* --- CRYPTO SELECTOR COMPONENT --- */}
+            <CryptoSelector
+              cartId={cart.id}
+              email={email}
+              customer={customer}
+              onError={setError}
+            />
 
+            {/* --- SIMULATOR BUTTON --- */}
+            <div className="pt-8 space-y-4">
               <div className="relative flex py-2 items-center">
                 <div className="grow border-t border-gray-200"></div>
                 <span className="shrink-0 mx-4 text-gray-400 text-xs font-medium uppercase tracking-wider">
-                  یا روش جایگزین
+                  بخش توسعه‌دهندگان
                 </span>
                 <div className="grow border-t border-gray-200"></div>
-              </div> */}
+              </div>
 
               <button
                 onClick={handlePlaceOrder}
-                disabled={loading || cryptoLoading}
+                disabled={loading}
                 className="group flex w-full items-center justify-between rounded-xl border-2 border-gray-200 bg-white px-6 py-5 text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 <div className="flex items-center gap-3">
@@ -303,7 +246,7 @@ export default function CheckoutPage() {
             </div>
 
             <p className="mt-6 text-[10px] text-gray-400 text-center leading-tight">
-              با تکمیل خرید، قوانین و مقررات فروشگاه نکست لایسنس را می‌پذیرید.
+              با تکمیل خرید، قوانین و مقررات فروشگاه را می‌پذیرید.
             </p>
           </div>
         </div>
@@ -312,7 +255,7 @@ export default function CheckoutPage() {
   );
 }
 
-// Updated Success View to accept displayId
+// Updated Success View
 function SuccessView({ orderId, displayId }) {
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center text-center px-4 animate-in fade-in duration-700">
@@ -332,8 +275,7 @@ function SuccessView({ orderId, displayId }) {
           شماره سفارش
         </span>
         <span className="font-mono text-2xl font-bold text-gray-900 tracking-widest">
-          {/* SHOW SHORT ID (Fallback to long ID if short missing) */}#
-          {displayId || orderId}
+          #{displayId || orderId}
         </span>
       </div>
 

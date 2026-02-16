@@ -3,7 +3,8 @@ import { NowPaymentsService } from "../../../../services/nowpayments";
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils";
 
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
-  const { cart_id } = req.body as any;
+  // FIX: Extract pay_currency sent from the Next.js frontend
+  const { cart_id, pay_currency } = req.body as any;
   const query = req.scope.resolve(ContainerRegistrationKeys.QUERY);
 
   try {
@@ -21,12 +22,12 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
 
     const nowPayments = new NowPaymentsService();
 
-    // We pass the raw Medusa amount (integer) and currency.
-    // The Service handles the Live Rate conversion now.
+    // FIX: Pass the chosen pay_currency to the service
     const invoice = await nowPayments.createInvoice(
       Number(cart.total),
       cart.currency_code,
       cart_id,
+      pay_currency,
     );
 
     return res.json({

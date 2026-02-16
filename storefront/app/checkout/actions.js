@@ -136,3 +136,104 @@ export async function placeOrder({ cartId, email, token }) {
     return { success: false, error: error.message };
   }
 }
+
+export async function prepareCartForCheckout({ cartId, email, token }) {
+  const headers = {
+    "Content-Type": "application/json",
+    "x-publishable-api-key": API_KEY,
+  };
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  try {
+    // --- STEP 1: PREPARE CART EMAIL & CONTEXT ---
+    let emailToUpdate = email;
+    let firstName = "کاربر";
+    let lastName = "مهمان";
+
+    if (token) {
+      try {
+        const customerRes = await fetch(`${BASE_URL}/store/customers/me`, {
+          headers,
+          cache: "no-store",
+        });
+        const customerData = await customerRes.json();
+
+        if (customerData.customer) {
+          emailToUpdate = customerData.customer.email || emailToUpdate;
+          firstName = customerData.customer.first_name || firstName;
+          lastName = customerData.customer.last_name || lastName;
+        }
+      } catch (e) {
+        console.warn("Could not fetch customer profile.");
+      }
+    }
+
+    const updateRes = await fetch(`${BASE_URL}/store/carts/${cartId}`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        email: emailToUpdate,
+        shipping_address: {
+          first_name: firstName,
+          last_name: lastName,
+          country_code: "ir",
+        },
+      }),
+    });
+
+    if (!updateRes.ok) throw new Error("Failed to update cart");
+
+    // --- STEP 2: SHIPPING ---
+    const optionsRes = await fetch(
+      `${BASE_URL}/store/shipping-options?cart_id=${cartId}`,
+      { headers, cache: "no-store" },
+    );
+    const optionsData = await optionsRes.json();
+    const options = optionsData.shipping_options || [];
+
+    if (options.length === 0) throw new Error("No shipping option configured.");
+
+    const shippingRes = await fetch(
+      `${BASE_URL}/store/carts/${cartId}/shipping-methods`,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ option_id: options[0].id }),
+      },
+    );
+
+    if (!shippingRes.ok) throw new Error("Failed to set shipping method.");
+
+    // --- STEP 3: PAYMENT SESSIONS ---
+    const collectionRes = await fetch(`${BASE_URL}/store/payment-collections`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ cart_id: cartId }),
+    });
+
+    if (!collectionRes.ok)
+      throw new Error("Failed to create payment collection");
+
+    const collectionData = await collectionRes.json();
+    const collectionId = collectionData.payment_collection?.id;
+
+    const sessionRes = await fetch(
+      `${BASE_URL}/store/payment-collections/${collectionId}/payment-sessions`,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ provider_id: "pp_system_default" }),
+      },
+    );
+
+    if (!sessionRes.ok) throw new Error("Failed to init payment session");
+
+    return { success: true };
+  } catch (error) {
+    console.error("[Prepare] 💥 Error:", error);
+    return { success: false, error: error.message };
+  }
+}
